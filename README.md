@@ -6,19 +6,22 @@ reach the goal. Zero install — it runs in any modern browser.
 
 This is a personal nostalgia / craft project, not a commercial product.
 
+**▶ Play it: https://satejp10.github.io/EDGE/** (desktop / keyboard)
+
 > Original game: https://store.steampowered.com/app/38740/EDGE/
 
 ---
 
 ## Status
 
-**Working single-file prototype** — fully playable on desktop (keyboard).
-The whole game currently lives in [`edge.html`](edge.html): HTML + CSS + one inline
-`<script>`, no build step, no dependencies.
+**Playable, migrated to a Vite repo.** Fully playable on desktop (keyboard). The game
+lives in ES modules under [`src/`](src/), built with Vite and deployed to GitHub Pages.
+The original single-file prototype is kept as [`edge.html`](edge.html) for reference.
 
-Next planned phase: graduate it to a small **Vite + vanilla-JS** repo (module split),
-then add mobile touch controls and more levels. See [CHANGELOG.md](CHANGELOG.md) for
-the running log and [the roadmap](#roadmap) below.
+The project has been migrated to a small **Vite + vanilla-JS** repo (modules under
+`src/`), auto-deployed to GitHub Pages. Next planned phase: mobile touch controls and
+more levels. See [CHANGELOG.md](CHANGELOG.md) for the running log and
+[the roadmap](#roadmap) below.
 
 ## Play it now
 
@@ -114,7 +117,19 @@ project context).
 
 ```
 EDGE/
-  edge.html            # the entire game (current prototype)
+  index.html           # Vite entry (markup + CSS + early error overlay)
+  vite.config.js       # base:'./' so the build runs from the Pages subpath
+  package.json
+  src/
+    main.js            # bootstrap, wiring, main loop
+    config.js          # timing constants + live-tunable settings
+    engine/math.js     # vectors, rotAxis, rotAboutEdge
+    render/            # canvas.js, camera.js, renderer.js
+    game/              # world.js, cube.js, dirs.js, input.js
+    levels/level1.js   # the level literal
+    ui.js              # HUD, overlays, tuning panel
+  .github/workflows/deploy.yml   # build + deploy to GitHub Pages
+  edge.html            # original single-file prototype (reference)
   controls-mockup.html # approved mobile control layout (reference, not wired in)
   README.md
   CHANGELOG.md         # running log of changes & progress
