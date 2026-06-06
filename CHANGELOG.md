@@ -15,18 +15,53 @@ Conventions used here:
 
 ## [Unreleased]
 
+### Notes
+- **Next planned task:** mobile touch controls (Cross + Diamond D-pads, settings toggle),
+  feeding the existing `heldKeys`/`bufferedDir` input path. See `controls-mockup.html`.
+
+---
+
+## [0.2.0] — 2026-06-06 — Vite migration
+
+Behavior-preserving port of the single-file `edge.html` into a Vite + vanilla-JS repo,
+split into ES modules. Same gameplay, same look, same controls — just reorganized.
+
 ### Added
-- Git repository initialized; pushed to GitHub as `Satejp10/EDGE`.
-- `README.md` — project overview, how-to-run, controls, architecture rationale
-  (Canvas 2D over WebGL), mechanics summary, roadmap, references.
-- `CHANGELOG.md` — this running progress log.
+- Vite project: `package.json`, `vite.config.js` (`base: './'` so the build runs from a
+  Pages subpath), `index.html` entry, `npm run dev` / `build` / `preview`.
+- Module layout under `src/`:
+  - `engine/math.js` — vectors, `rotAxis`, `rotAboutEdge`.
+  - `config.js` — timing constants + live-tunable `settings`.
+  - `levels/level1.js` — the level literal.
+  - `render/canvas.js` — canvas/ctx/size + `resize()`.
+  - `render/camera.js` — `setCamera`/`computeView`/`project`/`depthOf`.
+  - `render/renderer.js` — `shade`/`pushBox`/`fillPoly`/`sceneBlocks` + decal draws.
+  - `game/world.js` — `heightAt`, movers, fallers, beat clock.
+  - `game/cube.js` — the roll/edge/mover/faller state machine.
+  - `game/dirs.js` — shared direction table.
+  - `game/input.js` — keyboard layer (callbacks wired by main, keeps deps acyclic).
+  - `ui.js` — HUD, overlays, tuning panel (presentation only, data passed in).
+  - `main.js` — bootstrap, wiring, main loop.
+- GitHub Actions workflow (`.github/workflows/deploy.yml`) that builds and deploys
+  `dist/` to GitHub Pages on push to `main`.
+- `package-lock.json` (Vite as the only devDependency).
+
+### Verified
+- `npm run build` produces a clean `dist/` (16 modules, zero errors/warnings).
+- Loaded in a browser preview: zero console errors/warnings; start screen, HUD, and
+  scene render identically to `edge.html`.
+- **Full automated playthrough to a win** (driven via a temporary dev-only step hook):
+  rolling across the faller bridge, prism pickup, boarding the moving platform, being
+  carried, the ±1 climb, second prism, and reaching the goal (state → WON, 2/2 prisms).
+- Pause (P/Esc), tuning panel (T), and restart (R) all confirmed working.
 
 ### Notes
-- Project audited against `HANDOFF_edge.md` on 2026-06-06: single-file prototype
-  confirmed working; no prior git history, no build/tests/CLAUDE.md (all expected).
-  Inline scripts parse clean. Toolchain present: Node v24.14.0, npm 11.16.0.
-- **Next planned task:** Vite + vanilla-JS migration — a behavior-preserving port of
-  `edge.html` into a module layout (`engine / render / game / levels`). Not started.
+- `edge.html` is kept in the repo as the reference prototype.
+- Observed (not a regression): the headless preview suspends `requestAnimationFrame`
+  while the page is hidden, freezing the loop. Real browsers tick normally; a
+  Page-Visibility auto-pause is already on the roadmap (robustness step).
+- All temporary debug instrumentation used for verification was removed; the production
+  bundle never contained it (dev-only, tree-shaken).
 
 ---
 

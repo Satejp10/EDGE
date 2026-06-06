@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EDGE — recreation</title>
+<style>
+  :root{ --ink:#2a2d34; --hud:#3a3f4b; --magenta:#d6249f; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;touch-action:none}
+  body{
+    font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+    background:radial-gradient(120% 120% at 50% 0%, #ffffff 0%, #eaf0fa 45%, #dde6f4 100%);
+    color:var(--hud);
+  }
+  #c{position:fixed;inset:0;display:block}
+  #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:18px 22px;pointer-events:none;font-variant-numeric:tabular-nums;}
+  .pill{background:rgba(255,255,255,.62);border:1px solid rgba(58,63,75,.12);border-radius:10px;
+    padding:8px 14px;backdrop-filter:blur(6px);letter-spacing:.04em;}
+  .pill .lbl{font-size:10px;opacity:.55;display:block;letter-spacing:.18em}
+  .pill .val{font-size:20px;font-weight:600;color:var(--ink)}
+  #prisms .val{color:#10a5b8}
+  #hint{position:fixed;left:0;right:0;bottom:18px;text-align:center;font-size:12px;
+    letter-spacing:.1em;opacity:.5;pointer-events:none;}
+  #hint b{color:var(--magenta);font-weight:600}
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:14px;background:rgba(238,243,251,.66);backdrop-filter:blur(3px);pointer-events:auto;}
+  .overlay h1{font-size:46px;letter-spacing:.32em;color:var(--ink);font-weight:700;padding-left:.32em;}
+  .overlay p{font-size:13px;letter-spacing:.06em;opacity:.6;text-align:center;max-width:470px;line-height:1.8}
+  .overlay .stat{font-size:15px;color:var(--ink);letter-spacing:.06em}
+  .overlay .stat span{color:var(--magenta);font-weight:600}
+  .btn{margin-top:6px;cursor:pointer;border:1px solid rgba(42,45,52,.2);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 26px;font:inherit;font-size:13px;letter-spacing:.14em;
+    transition:transform .12s, box-shadow .12s;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,45,52,.12)}
+  kbd{font:inherit;background:#fff;border:1px solid rgba(42,45,52,.18);border-bottom-width:2px;
+    border-radius:5px;padding:1px 7px;color:var(--ink);font-size:12px}
+  .tag{font-size:10px;letter-spacing:.22em;opacity:.4;margin-top:2px}
+  .hidden{display:none}
+  #fatal{position:fixed;inset:auto 0 0 0;max-height:40%;overflow:auto;background:#1c1f26;color:#ff8fb0;
+    font-size:12px;line-height:1.5;padding:14px 18px;white-space:pre-wrap;display:none;z-index:99;}
+  #tune{position:fixed;left:18px;bottom:54px;z-index:50;background:rgba(28,31,38,.92);color:#dfe6f2;
+    border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;width:300px;
+    font-size:12px;letter-spacing:.04em;pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  #tune .ttitle{font-size:10px;letter-spacing:.22em;opacity:.5;margin-bottom:6px}
+  #tune .trow{display:flex;align-items:center;gap:10px;margin:8px 0}
+  #tune label{width:96px;opacity:.7}
+  #tune input[type=range]{flex:1;accent-color:#d6249f}
+  #tune span{width:50px;text-align:right;font-variant-numeric:tabular-nums;color:#fff}
+  #tune .tnote{margin-top:8px;opacity:.4;font-size:10px;line-height:1.5;letter-spacing:.02em}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <div class="pill" id="timer"><span class="lbl">TIME</span><span class="val">0:00.00</span></div>
+    <div class="pill" id="prisms"><span class="lbl">PRISMS</span><span class="val">0 / 0</span></div>
+  </div>
+
+  <div id="hint">hold a direction to keep rolling &nbsp;·&nbsp; ride the <b>blue</b> platform &nbsp;·&nbsp; cross <b>amber</b> tiles fast — they fall &nbsp;·&nbsp; P pause · R restart</div>
+
+  <div class="overlay" id="startScreen">
+    <h1>EDGE</h1>
+    <p>roll · ride the moving block · don't linger on the amber tiles · reach the goal<br>
+       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys move along the isometric diagonals</p>
+    <button class="btn" id="startBtn">START</button>
+    <div class="tag">DESKTOP · KEYBOARD ONLY</div>
+  </div>
+
+  <div class="overlay hidden" id="winScreen">
+    <h1>CLEARED</h1>
+    <div class="stat">TIME <span id="winTime">0:00.00</span></div>
+    <div class="stat">PRISMS <span id="winPrisms">0 / 0</span></div>
+    <button class="btn" id="againBtn">PLAY AGAIN</button>
+  </div>
+
+  <div class="overlay hidden" id="pauseScreen">
+    <h1>PAUSED</h1>
+    <p>press P or Esc to resume</p>
+    <button class="btn" id="resumeBtn">RESUME</button>
+  </div>
+
+  <div id="tune" class="hidden">
+    <div class="ttitle">TUNING</div>
+    <div class="trow"><label>climb speed</label><input id="t_climb" type="range" min="0.5" max="3" step="0.05" value="1.5"><span id="v_climb">1.50×</span></div>
+    <div class="trow"><label>cam azimuth</label><input id="t_azim" type="range" min="20" max="70" step="1" value="45"><span id="v_azim">45°</span></div>
+    <div class="trow"><label>cam elevation</label><input id="t_elev" type="range" min="15" max="70" step="1" value="35"><span id="v_elev">35°</span></div>
+    <div class="tnote">press T to hide · controls assume azimuth ≈ 45° · tell me the values you like and I'll set them as defaults</div>
+  </div>
+
+  <div id="fatal"></div>
+
+<script>
+  // Early, non-module error overlay — catches module-load failures too.
+  window.showFatal = function(m){ var el=document.getElementById('fatal'); el.style.display='block'; el.textContent='⚠ '+m; };
+  window.addEventListener('error', function(e){
+    var m=e.message||'unknown error'; if(e.filename) m+='\n'+e.filename+(e.lineno?(':'+e.lineno):''); window.showFatal(m);
+  });
+</script>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

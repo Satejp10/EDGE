@@ -1,0 +1,15 @@
+{
+  "name": "edge",
+  "version": "0.2.0",
+  "description": "Browser-playable recreation of the 2008 puzzle-platformer EDGE (Canvas 2D, vanilla JS)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.0.16"
+  }
+}
