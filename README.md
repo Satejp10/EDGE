@@ -1,0 +1,138 @@
+# EDGE — browser recreation
+
+A faithful, browser-playable recreation of the 2008 puzzle-platformer **EDGE**
+(Two Tribes / Mobigame). Roll a cube across isometric tile levels, collect prisms,
+reach the goal. Zero install — it runs in any modern browser.
+
+This is a personal nostalgia / craft project, not a commercial product.
+
+> Original game: https://store.steampowered.com/app/38740/EDGE/
+
+---
+
+## Status
+
+**Working single-file prototype** — fully playable on desktop (keyboard).
+The whole game currently lives in [`edge.html`](edge.html): HTML + CSS + one inline
+`<script>`, no build step, no dependencies.
+
+Next planned phase: graduate it to a small **Vite + vanilla-JS** repo (module split),
+then add mobile touch controls and more levels. See [CHANGELOG.md](CHANGELOG.md) for
+the running log and [the roadmap](#roadmap) below.
+
+## Play it now
+
+No build required:
+
+```
+open edge.html in any modern browser   (double-click, or serve the folder and open it)
+```
+
+After the Vite migration this becomes:
+
+```
+npm install   →   npm run dev   →   open the localhost URL Vite prints
+```
+
+## Controls (desktop)
+
+| Key | Action |
+|---|---|
+| `W` `A` `S` `D` / arrow keys | Roll along the isometric diagonals |
+| **hold** a direction | Keep rolling continuously |
+| tap toward a ledge again | Commit the edge → fall; opposite tap → recover |
+| `P` / `Esc` | Pause (freezes everything) |
+| `R` | Restart |
+| `T` | Tuning panel (climb speed, camera azimuth/elevation) |
+
+The four moves land on screen **diagonals**: `↑`→up-right, `↓`→down-left,
+`→`→down-right, `←`→up-left. (This is why a diamond D-pad maps more intuitively than a
+cross — relevant for the upcoming touch controls.)
+
+Mobile touch controls are **designed but not yet built** — see
+[`controls-mockup.html`](controls-mockup.html) for the approved layout.
+
+---
+
+## Architecture — and why
+
+The single most important decision: **the renderer is hand-rolled Canvas 2D, not
+WebGL / three.js.**
+
+The first version used three.js + WebGL and **crashed** on machines that fell back to a
+software WebGL context (lowp precision): `MeshStandardMaterial` failed to compile, and
+three.js r128 then threw because the software driver returns `null` from
+`gl.getParameter(gl.VERSION)`, which three calls string methods on without guarding.
+Rather than keep patching three for a broken GL context, the whole renderer was rewritten
+to plain Canvas 2D — **isometric projection + Rodrigues-rotation cube math + painter's-
+algorithm depth sort**. Result: zero GPU dependency, can't hit those crashes, truly
+offline single file.
+
+> **Do not reintroduce WebGL / three.js casually.** Only on a confirmed
+> hardware-accelerated context, and only if Canvas 2D genuinely can't keep up.
+
+Other key choices:
+
+- **Vanilla JS, no game engine.** The renderer is bespoke isometric math; Phaser (~500KB
+  full framework) or Pixi (renderer-only) would sit unused or fight the hand-rolled
+  pipeline.
+- **Single HTML file (so far)** because it was the fastest way to prototype and is
+  *already* a hostable static site. Graduating to **Vite + vanilla JS** right before the
+  project grows (level editor, many levels).
+
+### Core mechanics
+
+- **Roll math:** flat roll = 90° pivot about the shared edge; ±1 step climb/descend =
+  180° pivot. Steps ≥ +2 are walls (blocked); drops ≤ −2 are falls. Only ±1 is traversable.
+- **Edging:** roll into a drop → the cube clings; re-tap the same direction = fall, opposite
+  = recover. OS key-repeat is ignored so hold-to-roll can't fling you off a ledge.
+- **Movers:** a global tick clock (BEAT ≈ 0.85s) drives moving platforms; they glide
+  smoothly and carry a rider. Logical cell updates once per beat.
+- **Fallers:** collapsing tiles cycle `solid → armed → falling → gone → rising → solid`,
+  giving "keep moving" pressure with a retry.
+- **Fall rule:** a dynamic `heightAt()` query (static cells + mover current cell + faller
+  state) plus one rule — *no ground under the cube → fall* — handles vanished blocks and
+  movers sliding away cleanly.
+
+A fuller decision log and historical gotchas live in `HANDOFF_edge.md` (kept in-repo as
+project context).
+
+---
+
+## Roadmap
+
+1. **Vite + vanilla-JS migration** — behavior-preserving port of `edge.html` into a module
+   layout (`engine / render / game / levels`). *(immediate next task)*
+2. **Mobile touch controls** — Cross + Diamond D-pads switchable via a settings toggle,
+   feeding the same input path so hold-to-roll works for free. Coarse-pointer devices only.
+3. **Fixed-timestep loop + render interpolation** — make rolls land identically at 30/60/144 Hz.
+4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
+5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema + loader.
+6. **Polish & deploy** — object pooling, profiling, error telemetry; host on a free static host.
+
+## Project layout
+
+```
+EDGE/
+  edge.html            # the entire game (current prototype)
+  controls-mockup.html # approved mobile control layout (reference, not wired in)
+  README.md
+  CHANGELOG.md         # running log of changes & progress
+  HANDOFF_edge.md      # original project handoff / decision log (context)
+```
+
+## Constraints / non-goals
+
+- Must run in a plain browser with no mandatory backend, and survive weak/software GPU
+  contexts (hence Canvas 2D).
+- No audio, no accounts/backend for the core demo, no heavy game engine.
+- No WebGL/three.js reintroduction unless the software-context crash is provably gone.
+
+---
+
+## References
+
+- Original game: https://store.steampowered.com/app/38740/EDGE/
+- Fixed-timestep loop: https://gafferongames.com/post/fix_your_timestep/
+- Canvas 2D performance: https://web.dev/articles/canvas-performance
+- GC / jank & object pooling: https://v8.dev/blog/jank-busters

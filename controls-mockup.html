@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>EDGE — control layouts</title>
+<style>
+  :root{ --ink:#2a2d34; --magenta:#d6249f; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%;width:100%;touch-action:manipulation}
+  body{
+    font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+    background:radial-gradient(120% 120% at 50% 0%, #ffffff 0%, #eaf0fa 45%, #dde6f4 100%);
+    color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:26px 16px 36px; gap:22px;
+  }
+  .note{text-align:center;font-size:11px;letter-spacing:.14em;opacity:.5;line-height:1.8}
+  .note b{color:var(--magenta)}
+  .row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start;width:100%}
+  .card{
+    background:rgba(255,255,255,.5);border:1px solid rgba(58,63,75,.12);border-radius:18px;
+    padding:22px 22px 16px;display:flex;flex-direction:column;align-items:center;gap:14px;
+    min-width:200px;
+  }
+  .card .title{font-size:10px;letter-spacing:.24em;opacity:.55}
+  .card .sub{font-size:10px;letter-spacing:.04em;opacity:.4;text-align:center;line-height:1.6;max-width:180px}
+
+  .key{
+    background:rgba(255,255,255,.72);border:1px solid rgba(58,63,75,.16);border-radius:14px;
+    color:var(--ink);display:flex;align-items:center;justify-content:center;
+    user-select:none;font-size:22px;transition:transform .07s, background .07s, color .07s;
+  }
+  .key:active{ background:var(--magenta); color:#fff; transform:scale(.93); border-color:transparent; }
+
+  /* cross */
+  .cross{display:grid;grid-template-columns:repeat(3,62px);grid-template-rows:repeat(3,62px);gap:8px}
+  .cross .key{width:62px;height:62px}
+  .c-up{grid-column:2;grid-row:1}
+  .c-left{grid-column:1;grid-row:2}
+  .c-right{grid-column:3;grid-row:2}
+  .c-down{grid-column:2;grid-row:3}
+
+  /* diamond (diagonal) */
+  .diamond{display:grid;grid-template-columns:repeat(2,62px);grid-template-rows:repeat(2,62px);gap:14px}
+  .diamond .key{width:62px;height:62px;font-size:24px}
+
+  .sys{display:flex;gap:14px;align-items:center}
+  .sys .key{width:54px;height:54px;border-radius:50%;font-size:18px}
+  .sys .lab{font-size:9px;letter-spacing:.12em;opacity:.45;margin-top:5px;text-align:center}
+  .syswrap{display:flex;flex-direction:column;align-items:center}
+
+  .foot{font-size:11px;letter-spacing:.1em;opacity:.55;text-align:center;line-height:1.8}
+  .foot b{color:var(--magenta)}
+</style>
+</head>
+<body>
+  <div class="note">CONTROL LAYOUTS — pick one<br>tap a button to see the <b>press</b> state · not wired to the game yet</div>
+
+  <div class="row">
+    <div class="card">
+      <div class="title">CROSS</div>
+      <div class="cross">
+        <div class="key c-up">▲</div>
+        <div class="key c-left">◀</div>
+        <div class="key c-right">▶</div>
+        <div class="key c-down">▼</div>
+      </div>
+      <div class="sub">familiar plus pad — but ▲ moves the cube up-<i>right</i> on screen</div>
+    </div>
+
+    <div class="card">
+      <div class="title">DIAMOND · DIAGONAL</div>
+      <div class="diamond">
+        <div class="key">↖</div>
+        <div class="key">↗</div>
+        <div class="key">↙</div>
+        <div class="key">↘</div>
+      </div>
+      <div class="sub">each arrow points the way the cube actually goes on screen</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">SYSTEM BUTTONS</div>
+    <div class="sys">
+      <div class="syswrap"><div class="key">⏸</div><div class="lab">PAUSE</div></div>
+      <div class="syswrap"><div class="key">⟳</div><div class="lab">RESTART</div></div>
+      <div class="syswrap"><div class="key">⚙</div><div class="lab">TUNE</div></div>
+    </div>
+  </div>
+
+  <div class="foot">in-game: D-pad bottom-left · system buttons bottom-right<br><b>hold</b> a direction = keep rolling · tap a direction again at a ledge = fall</div>
+</body>
+</html>

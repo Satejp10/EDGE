@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EDGE — recreation</title>
+<style>
+  :root{ --ink:#2a2d34; --hud:#3a3f4b; --magenta:#d6249f; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;touch-action:none}
+  body{
+    font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+    background:radial-gradient(120% 120% at 50% 0%, #ffffff 0%, #eaf0fa 45%, #dde6f4 100%);
+    color:var(--hud);
+  }
+  #c{position:fixed;inset:0;display:block}
+  #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:18px 22px;pointer-events:none;font-variant-numeric:tabular-nums;}
+  .pill{background:rgba(255,255,255,.62);border:1px solid rgba(58,63,75,.12);border-radius:10px;
+    padding:8px 14px;backdrop-filter:blur(6px);letter-spacing:.04em;}
+  .pill .lbl{font-size:10px;opacity:.55;display:block;letter-spacing:.18em}
+  .pill .val{font-size:20px;font-weight:600;color:var(--ink)}
+  #prisms .val{color:#10a5b8}
+  #hint{position:fixed;left:0;right:0;bottom:18px;text-align:center;font-size:12px;
+    letter-spacing:.1em;opacity:.5;pointer-events:none;}
+  #hint b{color:var(--magenta);font-weight:600}
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:14px;background:rgba(238,243,251,.66);backdrop-filter:blur(3px);pointer-events:auto;}
+  .overlay h1{font-size:46px;letter-spacing:.32em;color:var(--ink);font-weight:700;padding-left:.32em;}
+  .overlay p{font-size:13px;letter-spacing:.06em;opacity:.6;text-align:center;max-width:470px;line-height:1.8}
+  .overlay .stat{font-size:15px;color:var(--ink);letter-spacing:.06em}
+  .overlay .stat span{color:var(--magenta);font-weight:600}
+  .btn{margin-top:6px;cursor:pointer;border:1px solid rgba(42,45,52,.2);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 26px;font:inherit;font-size:13px;letter-spacing:.14em;
+    transition:transform .12s, box-shadow .12s;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,45,52,.12)}
+  kbd{font:inherit;background:#fff;border:1px solid rgba(42,45,52,.18);border-bottom-width:2px;
+    border-radius:5px;padding:1px 7px;color:var(--ink);font-size:12px}
+  .tag{font-size:10px;letter-spacing:.22em;opacity:.4;margin-top:2px}
+  .hidden{display:none}
+  #fatal{position:fixed;inset:auto 0 0 0;max-height:40%;overflow:auto;background:#1c1f26;color:#ff8fb0;
+    font-size:12px;line-height:1.5;padding:14px 18px;white-space:pre-wrap;display:none;z-index:99;}
+  #tune{position:fixed;left:18px;bottom:54px;z-index:50;background:rgba(28,31,38,.92);color:#dfe6f2;
+    border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;width:300px;
+    font-size:12px;letter-spacing:.04em;pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  #tune .ttitle{font-size:10px;letter-spacing:.22em;opacity:.5;margin-bottom:6px}
+  #tune .trow{display:flex;align-items:center;gap:10px;margin:8px 0}
+  #tune label{width:96px;opacity:.7}
+  #tune input[type=range]{flex:1;accent-color:#d6249f}
+  #tune span{width:50px;text-align:right;font-variant-numeric:tabular-nums;color:#fff}
+  #tune .tnote{margin-top:8px;opacity:.4;font-size:10px;line-height:1.5;letter-spacing:.02em}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <div class="pill" id="timer"><span class="lbl">TIME</span><span class="val">0:00.00</span></div>
+    <div class="pill" id="prisms"><span class="lbl">PRISMS</span><span class="val">0 / 0</span></div>
+  </div>
+
+  <div id="hint">hold a direction to keep rolling &nbsp;·&nbsp; ride the <b>blue</b> platform &nbsp;·&nbsp; cross <b>amber</b> tiles fast — they fall &nbsp;·&nbsp; P pause · R restart</div>
+
+  <div class="overlay" id="startScreen">
+    <h1>EDGE</h1>
+    <p>roll · ride the moving block · don't linger on the amber tiles · reach the goal<br>
+       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys move along the isometric diagonals</p>
+    <button class="btn" id="startBtn">START</button>
+    <div class="tag">DESKTOP · KEYBOARD ONLY</div>
+  </div>
+
+  <div class="overlay hidden" id="winScreen">
+    <h1>CLEARED</h1>
+    <div class="stat">TIME <span id="winTime">0:00.00</span></div>
+    <div class="stat">PRISMS <span id="winPrisms">0 / 0</span></div>
+    <button class="btn" id="againBtn">PLAY AGAIN</button>
+  </div>
+
+  <div class="overlay hidden" id="pauseScreen">
+    <h1>PAUSED</h1>
+    <p>press P or Esc to resume</p>
+    <button class="btn" id="resumeBtn">RESUME</button>
+  </div>
+
+  <div id="tune" class="hidden">
+    <div class="ttitle">TUNING</div>
+    <div class="trow"><label>climb speed</label><input id="t_climb" type="range" min="0.5" max="3" step="0.05" value="1.5"><span id="v_climb">1.50×</span></div>
+    <div class="trow"><label>cam azimuth</label><input id="t_azim" type="range" min="20" max="70" step="1" value="45"><span id="v_azim">45°</span></div>
+    <div class="trow"><label>cam elevation</label><input id="t_elev" type="range" min="15" max="70" step="1" value="35"><span id="v_elev">35°</span></div>
+    <div class="tnote">press T to hide · controls assume azimuth ≈ 45° · tell me the values you like and I'll set them as defaults</div>
+  </div>
+
+  <div id="fatal"></div>
+
+<script>
+  function showFatal(m){ var el=document.getElementById('fatal'); el.style.display='block'; el.textContent='⚠ '+m; }
+  window.addEventListener('error', function(e){
+    var m=e.message||'unknown error'; if(e.filename) m+='\n'+e.filename+(e.lineno?(':'+e.lineno):''); showFatal(m);
+  });
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===== LEVEL =====
+  // cells   : static, SAFE checkpoints  [x,y,height]
+  // fallers : collapse-after-step       [x,y,height]
+  // movers  : {path:[[x,y],...], h, mode:'pingpong'|'loop'}
+  const LEVEL = {
+    start:[0,1], goal:[7,2],
+    cells:[ [0,1,0], [4,1,0], [6,2,1], [7,2,1] ],
+    fallers:[ [1,1,0], [2,1,0], [3,1,0] ],
+    movers:[ { path:[[5,1],[5,2]], h:0, mode:'pingpong' } ],
+    prisms:[ [2,1], [6,2] ]
+  };
+
+  // ===== TIMING =====
+  const BEAT=0.85;          // global tick (mover cadence)
+  const ROLL_SPEED=7.5;     // rad/s
+  const EDGE_FRAC=0.60;
+  const FALL_DELAY=0.45;    // armed -> falling
+  const FALL_ANIM=0.35;     // sink / rise duration
+  const FALL_RESPAWN=2.0;   // gone -> rising
+  let climbSpeed = ROLL_SPEED*1.5;   // climbs/descents sweep 180°; >ROLL_SPEED stops them feeling sluggish
+
+  // ===== CANVAS =====
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W=0,H=0,DPR=1;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W*DPR; canvas.height = H*DPR;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    computeView();
+  }
+
+  // ===== MATH =====
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+  const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  const norm=(a)=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];};
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const ease=t=>t*t*(3-2*t);
+  const cellLerp=(a,b,t)=>[lerp(a[0],b[0],t), lerp(a[1],b[1],t)];
+  function rotAxis(v,a,ang){ const c=Math.cos(ang), s=Math.sin(ang), d=dot(a,v), cr=cross(a,v);
+    return [ v[0]*c+cr[0]*s+a[0]*d*(1-c), v[1]*c+cr[1]*s+a[1]*d*(1-c), v[2]*c+cr[2]*s+a[2]*d*(1-c) ]; }
+  const rotAboutEdge=(p,e,a,ang)=>{ const r=rotAxis(sub(p,e),a,ang); return [e[0]+r[0],e[1]+r[1],e[2]+r[2]]; };
+
+  // ===== ISOMETRIC CAMERA (tunable azimuth / elevation) =====
+  let camAzim=45, camElev=35.26;            // degrees; (45, 35.26) == classic (1,1,1) iso
+  let zc, xc, yc, camDir;
+  function setCamera(azimDeg, elevDeg){
+    camAzim=azimDeg; camElev=elevDeg;
+    const a=azimDeg*Math.PI/180, e=elevDeg*Math.PI/180;
+    zc=[Math.cos(e)*Math.cos(a), Math.cos(e)*Math.sin(a), Math.sin(e)]; // unit, points toward camera
+    xc=norm(cross([0,0,1], zc));
+    yc=cross(zc, xc);
+    camDir=zc;
+  }
+  setCamera(camAzim, camElev);
+  const lightDir=norm([0.35,0.25,1]);
+  let S=60, TX=0,TY=0,TZ=0;
+
+  const VIEW_CELLS = [
+    ...LEVEL.cells.map(c=>[c[0],c[1],c[2]||0]),
+    ...LEVEL.fallers.map(c=>[c[0],c[1],c[2]||0]),
+    ...LEVEL.movers.flatMap(m=>m.path.map(p=>[p[0],p[1],m.h||0]))
+  ];
+  function computeView(){
+    const xs=VIEW_CELLS.map(c=>c[0]), ys=VIEW_CELLS.map(c=>c[1]), hs=VIEW_CELLS.map(c=>c[2]);
+    const cx=(Math.min(...xs)+Math.max(...xs))/2, cy=(Math.min(...ys)+Math.max(...ys))/2;
+    const maxH=Math.max(0,...hs);
+    const span=Math.max(Math.max(...xs)-Math.min(...xs), Math.max(...ys)-Math.min(...ys)) + maxH + 3.0;
+    TX=cx; TY=cy; TZ=maxH*0.40;
+    S = Math.min(W,H)/(span*1.16);
+  }
+  function project(p){ const r=[p[0]-TX,p[1]-TY,p[2]-TZ]; return [ W/2 + dot(r,xc)*S, H/2 - dot(r,yc)*S ]; }
+  const depthOf=(p)=>dot(p, zc);   // zc is unit -> monotonic with true view depth at any angle
+
+  // ===== SHADING / GEOMETRY =====
+  function shade(hex, n){
+    const r=(hex>>16)&255, g=(hex>>8)&255, b=hex&255;
+    const diff=Math.max(0, dot(n,lightDir)); const k=Math.min(1, 0.52 + 0.5*diff);
+    return 'rgb('+Math.round(r*k)+','+Math.round(g*k)+','+Math.round(b*k)+')';
+  }
+  function boxCorners(c,hx,hy,hz){
+    return [
+      [c[0]-hx,c[1]-hy,c[2]-hz],[c[0]+hx,c[1]-hy,c[2]-hz],[c[0]+hx,c[1]+hy,c[2]-hz],[c[0]-hx,c[1]+hy,c[2]-hz],
+      [c[0]-hx,c[1]-hy,c[2]+hz],[c[0]+hx,c[1]-hy,c[2]+hz],[c[0]+hx,c[1]+hy,c[2]+hz],[c[0]-hx,c[1]+hy,c[2]+hz]
+    ];
+  }
+  const FACES=[[4,5,6,7],[0,3,2,1],[1,2,6,5],[0,4,7,3],[3,7,6,2],[0,1,5,4]];
+  function pushBox(list, corners, baseHex, strokeHex, alpha){
+    for(const f of FACES){
+      const a=corners[f[0]],b=corners[f[1]],d=corners[f[2]];
+      let n=cross(sub(b,a),sub(d,a));
+      if(dot(n,camDir)<=0) continue;
+      n=norm(n);
+      const pts=f.map(i=>project(corners[i]));
+      const dep=(depthOf(corners[f[0]])+depthOf(corners[f[1]])+depthOf(corners[f[2]])+depthOf(corners[f[3]]))/4;
+      list.push({dep, fill:shade(baseHex,n), stroke:strokeHex, pts, alpha:alpha==null?1:alpha});
+    }
+  }
+
+  // ===== DYNAMIC WORLD =====
+  const staticMap = new Map(LEVEL.cells.map(c=>[c[0]+","+c[1], c[2]||0]));
+  const fallerList = LEVEL.fallers.map(([x,y,h])=>({x,y,h:h||0,state:'solid',t:0}));
+  const fallerMap = new Map(fallerList.map(f=>[f.x+","+f.y,f]));
+  const movers = LEVEL.movers.map(m=>({path:m.path, h:m.h||0, mode:m.mode||'pingpong', idx:0, dir:1, prev:m.path[0], cur:m.path[0]}));
+  const goalH = (staticMap.get(LEVEL.goal[0]+","+LEVEL.goal[1]) || 0);
+
+  function moverVisual(m){ const t=ease(Math.min(1, beatPhase/BEAT)); return cellLerp(m.prev, m.cur, t); }
+  function moverAt(x,y){ for(const m of movers) if(m.cur[0]===x && m.cur[1]===y) return m; return null; }
+  function isSafe(x,y){ return staticMap.has(x+","+y); }
+  function heightAt(x,y){
+    const key=x+","+y;
+    if(staticMap.has(key)) return staticMap.get(key);
+    for(const m of movers){ if(m.cur[0]===x && m.cur[1]===y) return m.h; }
+    const f=fallerMap.get(key);
+    if(f && (f.state==='solid'||f.state==='armed')) return f.h;
+    return null;
+  }
+  function armFaller(x,y){ const f=fallerMap.get(x+","+y); if(f && f.state==='solid'){ f.state='armed'; f.t=0; } }
+
+  function beatAdvanceMovers(){
+    for(const m of movers){
+      m.prev=m.cur; let ni;
+      if(m.mode==='loop'){ ni=(m.idx+1)%m.path.length; }
+      else { ni=m.idx+m.dir; if(ni>m.path.length-1){ m.dir=-1; ni=m.idx+m.dir; } else if(ni<0){ m.dir=1; ni=m.idx+m.dir; } }
+      m.idx=ni; m.cur=m.path[ni];
+    }
+  }
+  function updateFallers(dt){
+    for(const f of fallerList){
+      f.t+=dt;
+      if(f.state==='armed'   && f.t>=FALL_DELAY)  { f.state='falling'; f.t=0; }
+      else if(f.state==='falling' && f.t>=FALL_ANIM){ f.state='gone';    f.t=0; }
+      else if(f.state==='gone'    && f.t>=FALL_RESPAWN){ f.state='rising'; f.t=0; }
+      else if(f.state==='rising'  && f.t>=FALL_ANIM){ f.state='solid';   f.t=0; }
+    }
+  }
+
+  // ===== CUBE STATE =====
+  const ST={START:0,IDLE:1,ROLLING:2,EDGING:3,FALLING:4,WON:5};
+  let state=ST.START;
+  let pos={x:LEVEL.start[0], y:LEVEL.start[1]};
+  let lastSafe={x:pos.x, y:pos.y, h:heightAt(pos.x,pos.y)};
+  let C=[pos.x, pos.y, heightAt(pos.x,pos.y)+0.5];
+  let R=[[1,0,0],[0,1,0],[0,0,1]];
+  let cubeAlpha=1;
+  let collected=0, timeMs=0, timing=false;
+  let beatPhase=0;
+  let ridingMover=null;
+
+  const HALF=0.45;
+  const LOCAL=[
+    [-HALF,-HALF,-HALF],[HALF,-HALF,-HALF],[HALF,HALF,-HALF],[-HALF,HALF,-HALF],
+    [-HALF,-HALF,HALF],[HALF,-HALF,HALF],[HALF,HALF,HALF],[-HALF,HALF,HALF]
+  ];
+  function baseCorners(){
+    return LOCAL.map(L=>[
+      C[0]+L[0]*R[0][0]+L[1]*R[1][0]+L[2]*R[2][0],
+      C[1]+L[0]*R[0][1]+L[1]*R[1][1]+L[2]*R[2][1],
+      C[2]+L[0]*R[0][2]+L[1]*R[1][2]+L[2]*R[2][2]
+    ]);
+  }
+
+  const DIRS={
+    ArrowDown: {dx:1,dy:0, axis:[0,1,0], theta: Math.PI/2, off:[0.5,0]},
+    KeyS:      {dx:1,dy:0, axis:[0,1,0], theta: Math.PI/2, off:[0.5,0]},
+    ArrowUp:   {dx:-1,dy:0,axis:[0,1,0], theta:-Math.PI/2, off:[-0.5,0]},
+    KeyW:      {dx:-1,dy:0,axis:[0,1,0], theta:-Math.PI/2, off:[-0.5,0]},
+    ArrowRight:{dx:0,dy:1, axis:[1,0,0], theta:-Math.PI/2, off:[0,0.5]},
+    KeyD:      {dx:0,dy:1, axis:[1,0,0], theta:-Math.PI/2, off:[0,0.5]},
+    ArrowLeft: {dx:0,dy:-1,axis:[1,0,0], theta: Math.PI/2, off:[0,-0.5]},
+    KeyA:      {dx:0,dy:-1,axis:[1,0,0], theta: Math.PI/2, off:[0,-0.5]}
+  };
+
+  let roll=null, edgeDir=null, edgePivot=null, fallT=0;
+
+  function beginRoll(key){
+    if(state!==ST.IDLE) return;
+    const dir=DIRS[key]; if(!dir) return;
+    if(ridingMover){ C=[pos.x,pos.y,ridingMover.h+0.5]; }   // snap before leaving a moving platform
+    const hc=heightAt(pos.x,pos.y); if(hc===null) return;
+    const nx=pos.x+dir.dx, ny=pos.y+dir.dy; const hn=heightAt(nx,ny);
+    const px=pos.x+dir.off[0], py=pos.y+dir.off[1];
+    timing=true;
+    if(hn===null || hn<=hc-2){ roll={dir,phi:0,target:dir.theta*EDGE_FRAC,kind:'edge', pivot:[px,py,hc],  speed:ROLL_SPEED}; }
+    else if(hn===hc)        { roll={dir,phi:0,target:dir.theta,         kind:'roll', pivot:[px,py,hc],  speed:ROLL_SPEED}; }
+    else if(hn===hc+1)      { roll={dir,phi:0,target:dir.theta*2,       kind:'climb',pivot:[px,py,hc+1],speed:climbSpeed}; }
+    else if(hn===hc-1)      { roll={dir,phi:0,target:dir.theta*2,       kind:'down', pivot:[px,py,hc],  speed:climbSpeed}; }
+    else return; // wall too tall
+    ridingMover=null;
+    state=ST.ROLLING;
+  }
+  function commitEdge(key){
+    const dir=DIRS[key]; if(!dir) return; const cur=edgeDir;
+    if(dir.dx===cur.dx && dir.dy===cur.dy){ roll={dir:cur,phi:cur.theta*EDGE_FRAC,target:cur.theta,kind:'fall',pivot:edgePivot,speed:ROLL_SPEED}; state=ST.ROLLING; }
+    else if(dir.dx===-cur.dx && dir.dy===-cur.dy){ roll={dir:cur,phi:cur.theta*EDGE_FRAC,target:0,kind:'recover',pivot:edgePivot,speed:ROLL_SPEED}; state=ST.ROLLING; }
+  }
+  function bakeRoll(r){
+    R=R.map(col=>rotAxis(col,r.dir.axis,r.target)).map(col=>col.map(v=>Math.round(v)));
+    C=rotAboutEdge(C,r.pivot,r.dir.axis,r.target);
+    const nx=Math.round(C[0]), ny=Math.round(C[1]); const h=heightAt(nx,ny);
+    C=[nx,ny,(h===null? C[2] : h+0.5)]; pos={x:nx,y:ny};
+  }
+  function finalizeRoll(){
+    const k=roll.kind, dir=roll.dir;
+    if(k==='roll'||k==='climb'||k==='down'){
+      bakeRoll(roll);
+      if(isSafe(pos.x,pos.y)){ lastSafe={x:pos.x,y:pos.y,h:staticMap.get(pos.x+","+pos.y)}; ridingMover=null; }
+      else { const m=moverAt(pos.x,pos.y); if(m){ ridingMover=m; } else { ridingMover=null; if(fallerMap.has(pos.x+","+pos.y)) armFaller(pos.x,pos.y); } }
+      dropTrail(pos.x,pos.y); checkPrism();
+      if(pos.x===LEVEL.goal[0] && pos.y===LEVEL.goal[1]){ win(); roll=null; return; }
+      state=ST.IDLE;
+    } else if(k==='edge'){ edgeDir=dir; edgePivot=roll.pivot; state=ST.EDGING; }
+    else if(k==='recover'){ state=ST.IDLE; }
+    else if(k==='fall'){ R=R.map(col=>rotAxis(col,dir.axis,roll.target)); C=rotAboutEdge(C,roll.pivot,dir.axis,roll.target); state=ST.FALLING; fallT=0; }
+    roll=null;
+  }
+  function startFall(){ ridingMover=null; state=ST.FALLING; fallT=0; }
+  function tickFall(dt){
+    fallT+=dt; C[2]-=dt*7*Math.min(1,fallT*3); cubeAlpha=Math.max(0,1-fallT*1.5);
+    if(fallT>0.8){
+      pos={x:lastSafe.x,y:lastSafe.y}; C=[pos.x,pos.y,lastSafe.h+0.5];
+      R=[[1,0,0],[0,1,0],[0,0,1]]; cubeAlpha=1; ridingMover=null; state=ST.IDLE;
+    }
+  }
+  function idleSync(){
+    if(ridingMover){
+      const vp=moverVisual(ridingMover);
+      pos={x:ridingMover.cur[0], y:ridingMover.cur[1]};
+      C=[vp[0], vp[1], ridingMover.h+0.5];
+      checkPrism();
+      if(pos.x===LEVEL.goal[0] && pos.y===LEVEL.goal[1]) win();
+    } else if(heightAt(pos.x,pos.y)===null){
+      startFall();
+    } else {
+      checkPrism();
+    }
+  }
+
+  // ===== PRISMS / TRAIL / GOAL =====
+  const prisms=LEVEL.prisms.map(([x,y])=>({x,y,h:(heightAt(x,y)||0),taken:false,pop:0}));
+  const trail=[];
+  function dropTrail(x,y){ trail.push({x,y,h:(heightAt(x,y)||0),life:1.4}); }
+  function checkPrism(){ prisms.forEach(p=>{ if(!p.taken && p.x===pos.x && p.y===pos.y){ p.taken=true; p.pop=0; collected++; updateHud(); } }); }
+  function win(){ if(state===ST.WON) return; state=ST.WON; timing=false;
+    document.getElementById('winTime').textContent=fmt(timeMs);
+    document.getElementById('winPrisms').textContent=collected+" / "+prisms.length;
+    document.getElementById('winScreen').classList.remove('hidden'); }
+
+  // ===== INPUT =====
+  const heldKeys=new Set();
+  let bufferedDir=null, paused=false, animClock=0;
+  window.addEventListener('keydown',(e)=>{
+    if(e.code==='KeyR'){ restart(); return; }
+    if(e.code==='KeyT'){ toggleTune(); return; }
+    if(e.code==='KeyP'){ e.preventDefault(); togglePause(); return; }
+    if(e.code==='Escape'){ togglePause(); return; }
+    if(!(e.code in DIRS)) return;
+    e.preventDefault();
+    heldKeys.add(e.code);
+    if(e.repeat) return;                          // ignore OS auto-repeat; we drive continuity ourselves
+    if(state===ST.EDGING){ commitEdge(e.code); }  // a fresh tap commits (same dir = fall) or recovers (opposite)
+    else { bufferedDir=e.code; }                  // remember the latest tap so the next move fires instantly
+  });
+  window.addEventListener('keyup',(e)=>{ if(e.code in DIRS) heldKeys.delete(e.code); });
+  function nextDir(){
+    if(bufferedDir){ const d=bufferedDir; bufferedDir=null; return d; }
+    const arr=[...heldKeys];
+    for(let i=arr.length-1;i>=0;i--) if(DIRS[arr[i]]) return arr[i];   // most-recent still-held direction
+    return null;
+  }
+  document.getElementById('startBtn').onclick=()=>{ document.getElementById('startScreen').classList.add('hidden'); heldKeys.clear(); bufferedDir=null; paused=false; window.focus(); state=ST.IDLE; };
+  document.getElementById('againBtn').onclick=restart;
+  const pauseScreen=document.getElementById('pauseScreen');
+  function togglePause(){
+    if(state===ST.START || state===ST.WON) return;
+    paused=!paused;
+    pauseScreen.classList.toggle('hidden', !paused);
+    if(!paused) window.focus();
+  }
+  document.getElementById('resumeBtn').onclick=()=>{ if(paused) togglePause(); };
+
+  // ===== TUNING PANEL =====
+  const tune=document.getElementById('tune');
+  function toggleTune(){ tune.classList.toggle('hidden'); if(tune.classList.contains('hidden')) window.focus(); }
+  const tClimb=document.getElementById('t_climb'), tAzim=document.getElementById('t_azim'), tElev=document.getElementById('t_elev');
+  tClimb.addEventListener('input',()=>{ const m=parseFloat(tClimb.value); climbSpeed=ROLL_SPEED*m; document.getElementById('v_climb').textContent=m.toFixed(2)+'×'; });
+  function applyCam(){ setCamera(parseFloat(tAzim.value), parseFloat(tElev.value)); document.getElementById('v_azim').textContent=tAzim.value+'°'; document.getElementById('v_elev').textContent=tElev.value+'°'; }
+  tAzim.addEventListener('input',applyCam);
+  tElev.addEventListener('input',applyCam);
+  function restart(){
+    document.getElementById('winScreen').classList.add('hidden');
+    document.getElementById('startScreen').classList.add('hidden');
+    prisms.forEach(p=>{p.taken=false;p.pop=0;});
+    fallerList.forEach(f=>{f.state='solid';f.t=0;});
+    movers.forEach(m=>{m.idx=0;m.dir=1;m.prev=m.path[0];m.cur=m.path[0];});
+    collected=0; timeMs=0; timing=false; beatPhase=0; ridingMover=null;
+    pos={x:LEVEL.start[0],y:LEVEL.start[1]}; lastSafe={x:pos.x,y:pos.y,h:heightAt(pos.x,pos.y)};
+    C=[pos.x,pos.y,heightAt(pos.x,pos.y)+0.5]; R=[[1,0,0],[0,1,0],[0,0,1]]; cubeAlpha=1;
+    trail.length=0; roll=null; edgeDir=null; edgePivot=null;
+    heldKeys.clear(); bufferedDir=null; paused=false; pauseScreen.classList.add('hidden');
+    updateHud(); window.focus();
+    state=ST.IDLE;
+  }
+
+  // ===== HUD =====
+  function fmt(ms){const t=ms/1000,m=Math.floor(t/60),s=Math.floor(t%60),c=Math.floor((t*100)%100);
+    return m+":"+String(s).padStart(2,'0')+"."+String(c).padStart(2,'0');}
+  function updateHud(){
+    document.querySelector('#timer .val').textContent=fmt(timeMs);
+    document.querySelector('#prisms .val').textContent=collected+" / "+prisms.length;
+  }
+  updateHud();
+
+  // ===== DRAW HELPERS =====
+  function fillPoly(pts, fill, stroke, alpha){
+    ctx.globalAlpha=alpha==null?1:alpha;
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+    ctx.closePath();
+    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+    if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.lineJoin='round'; ctx.stroke(); }
+    ctx.globalAlpha=1;
+  }
+  function drawPrism(p, now){
+    const bob=Math.sin(now*0.003+p.x)*0.06; const s = p.taken ? Math.max(0,1-p.pop) : 1; if(s<=0) return;
+    const ctr=project([p.x,p.y,p.h+0.55+bob]); const r=0.24*S*s;
+    const top=[ctr[0],ctr[1]-r], bot=[ctr[0],ctr[1]+r], lf=[ctr[0]-r*0.72,ctr[1]], rt=[ctr[0]+r*0.72,ctr[1]];
+    fillPoly([top,rt,bot,lf],'#15b9c9','#0a7f8c',0.96);
+    fillPoly([top,rt,[ctr[0],ctr[1]],lf],'#7fe6f0',null,0.9);
+  }
+  function drawGoal(now){
+    const g=LEVEL.goal; const c=project([g[0],g[1],goalH+0.02]);
+    const rx=0.40*S, ry=0.40*S*0.5, pulse=1+Math.sin(now*0.004)*0.08;
+    ctx.save(); ctx.globalAlpha=0.9; ctx.strokeStyle='#10c2a8'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.ellipse(c[0],c[1],rx*pulse,ry*pulse,0,0,Math.PI*2); ctx.stroke();
+    ctx.globalAlpha=0.5; ctx.fillStyle='#10c2a8';
+    ctx.beginPath(); ctx.ellipse(c[0],c[1],rx*0.34,ry*0.34,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+  function trailQuad(t){ const z=t.h+0.012, h=0.4; return [[t.x-h,t.y-h,z],[t.x+h,t.y-h,z],[t.x+h,t.y+h,z],[t.x-h,t.y+h,z]].map(project); }
+
+  // collect every solid block (static + faller + mover) as {corners,hex,alpha}
+  function sceneBlocks(now){
+    const out=[];
+    const pushCell=(x,y,h,hex,a)=>{
+      if(h<=0){ out.push({c:boxCorners([x,y,-0.175],0.49,0.49,0.175),hex,a}); }
+      else { for(let k=0;k<h;k++) out.push({c:boxCorners([x,y,k+0.5],0.49,0.49,0.5),hex,a}); }
+    };
+    for(const [x,y,h0] of LEVEL.cells) pushCell(x,y,h0||0, 0xffffff, 1);
+    for(const f of fallerList){
+      if(f.state==='gone') continue;
+      let zoff=0, a=1, hex=0xF0E2C4;
+      if(f.state==='armed'){ hex = (Math.floor(now/110)%2===0) ? 0xF0A93A : 0xF6C763; }
+      else if(f.state==='falling'){ const fr=Math.min(1,f.t/FALL_ANIM); zoff=-fr*2.4; a=Math.max(0,1-fr); }
+      else if(f.state==='rising'){ const fr=Math.min(1,f.t/FALL_ANIM); zoff=-(1-fr)*2.4; a=fr; }
+      const h=f.h;
+      if(h<=0){ out.push({c:boxCorners([f.x,f.y,-0.175+zoff],0.49,0.49,0.175),hex,a}); }
+      else { for(let k=0;k<h;k++) out.push({c:boxCorners([f.x,f.y,k+0.5+zoff],0.49,0.49,0.5),hex,a}); }
+    }
+    for(const m of movers){ const vp=moverVisual(m); pushCell(vp[0],vp[1],m.h, 0xE7EFFF, 1); }
+    return out;
+  }
+
+  // ===== LOOP =====
+  let prev=performance.now();
+  function frame(now){
+    try{
+      const dt=Math.min(0.05,(now-prev)/1000); prev=now;
+
+      if(!paused){
+        animClock+=dt*1000;
+        if(timing && state!==ST.WON && state!==ST.START){ timeMs+=dt*1000; updateHud(); }
+
+        // tick clock (movers + collapsing blocks)
+        if(state!==ST.START && state!==ST.WON){
+          beatPhase+=dt; if(beatPhase>=BEAT){ beatPhase-=BEAT; beatAdvanceMovers(); }
+          updateFallers(dt);
+        }
+
+        // cube motion
+        if(state===ST.ROLLING && roll){
+          const step=(roll.speed||ROLL_SPEED)*dt;
+          if(roll.phi<roll.target) roll.phi=Math.min(roll.target, roll.phi+step);
+          else if(roll.phi>roll.target) roll.phi=Math.max(roll.target, roll.phi-step);
+          if(Math.abs(roll.phi-roll.target)<1e-4){ roll.phi=roll.target; finalizeRoll(); }
+        }
+        if(state===ST.FALLING) tickFall(dt);
+        if(state===ST.IDLE) idleSync();
+        // continuous / buffered movement: keep rolling while a direction is held
+        if(state===ST.IDLE){ const code=nextDir(); if(code) beginRoll(code); }
+        prisms.forEach(p=>{ if(p.taken && p.pop<1) p.pop+=dt*3.5; });
+        for(let i=trail.length-1;i>=0;i--){ trail[i].life-=dt; if(trail[i].life<=0) trail.splice(i,1); }
+      }
+
+      // cube display corners
+      let corners=baseCorners();
+      if(state===ST.ROLLING && roll){ corners=corners.map(c=>rotAboutEdge(c,roll.pivot,roll.dir.axis,roll.phi)); }
+      else if(state===ST.EDGING && edgeDir){ const phi=edgeDir.theta*EDGE_FRAC + Math.sin(animClock*0.004)*0.02; corners=corners.map(c=>rotAboutEdge(c,edgePivot,edgeDir.axis,phi)); }
+
+      // render (runs even while paused so the frozen frame stays visible)
+      ctx.clearRect(0,0,W,H);
+      const list=[];
+      for(const blk of sceneBlocks(animClock)) pushBox(list, blk.c, blk.hex, '#cdd6e3', blk.a);
+      pushBox(list, corners, 0xd6249f, '#7a0e5e', cubeAlpha);
+      for(const t of trail) list.push({dep:depthOf([t.x,t.y,t.h+0.012])+0.05, decal:'trail', t});
+      list.push({dep:depthOf([LEVEL.goal[0],LEVEL.goal[1],goalH+0.02])+0.04, decal:'goal'});
+      for(const p of prisms){ if(p.taken && p.pop>=1) continue; list.push({dep:depthOf([p.x,p.y,p.h+0.55])+0.02, decal:'prism', p}); }
+
+      list.sort((a,b)=>a.dep-b.dep);
+      for(const it of list){
+        if(it.decal==='trail'){ fillPoly(trailQuad(it.t), '#d6249f', null, Math.max(0,it.t.life/1.4)*0.30); }
+        else if(it.decal==='goal'){ drawGoal(animClock); }
+        else if(it.decal==='prism'){ drawPrism(it.p, animClock); }
+        else { fillPoly(it.pts, it.fill, it.stroke, it.alpha); }
+      }
+
+      requestAnimationFrame(frame);
+    }catch(err){ showFatal('loop: '+(err&&err.message?err.message:err)); }
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

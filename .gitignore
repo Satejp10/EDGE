@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# build output (Vite)
+dist/
+.vite/
+
+# logs
+*.log
+npm-debug.log*
+
+# local agent / editor config
+.claude/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
