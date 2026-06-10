@@ -29,8 +29,10 @@ Conventions used here:
     testing. Pointer Events + pointer capture (multi-touch safe, clean release when a
     finger slides off); keyboard hint hidden and start-screen copy swapped when active.
   - `index.html`: pad markup/CSS (mockup styles), viewport meta gains
-    `maximum-scale=1, user-scalable=no, viewport-fit=cover`, pads respect
-    safe-area insets. (2026-06-10)
+    `viewport-fit=cover`, pads respect safe-area insets. Pinch zoom stays enabled
+    for accessibility (review feedback) — gameplay gestures are already suppressed
+    by `touch-action: none` on the game surface and pads, while the menu overlays
+    remain zoomable. (2026-06-10)
 - `LICENSE` — all-rights-reserved-for-now license with a non-affiliation / fan-work
   notice (EDGE © Mobigame / Two Tribes); open-source release planned later. README
   gained a matching "License & affiliation" section. (2026-06-10)
