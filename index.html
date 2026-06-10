@@ -54,7 +54,8 @@
 
   /* ===== touch controls (coarse-pointer devices; visibility gated in JS) ===== */
   #touch{position:fixed;inset:0;pointer-events:none;-webkit-tap-highlight-color:transparent}
-  #touch .key{pointer-events:auto;touch-action:none;background:rgba(255,255,255,.72);
+  #touch .key{pointer-events:auto;touch-action:none;appearance:none;padding:0;margin:0;font:inherit;
+    background:rgba(255,255,255,.72);
     border:1px solid rgba(58,63,75,.16);border-radius:14px;color:var(--ink);
     display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;
     font-size:22px;transition:transform .07s, background .07s, color .07s;}
@@ -88,22 +89,22 @@
   <div id="touch" class="hidden">
     <div id="pad">
       <div id="padCross" class="cross hidden">
-        <div class="key c-up" data-dir="ArrowUp">▲</div>
-        <div class="key c-left" data-dir="ArrowLeft">◀</div>
-        <div class="key c-right" data-dir="ArrowRight">▶</div>
-        <div class="key c-down" data-dir="ArrowDown">▼</div>
+        <button type="button" class="key c-up" data-dir="ArrowUp" aria-label="Roll up-right">▲</button>
+        <button type="button" class="key c-left" data-dir="ArrowLeft" aria-label="Roll up-left">◀</button>
+        <button type="button" class="key c-right" data-dir="ArrowRight" aria-label="Roll down-right">▶</button>
+        <button type="button" class="key c-down" data-dir="ArrowDown" aria-label="Roll down-left">▼</button>
       </div>
       <div id="padDiamond" class="diamond hidden">
-        <div class="key" data-dir="ArrowLeft">↖</div>
-        <div class="key" data-dir="ArrowUp">↗</div>
-        <div class="key" data-dir="ArrowDown">↙</div>
-        <div class="key" data-dir="ArrowRight">↘</div>
+        <button type="button" class="key" data-dir="ArrowLeft" aria-label="Roll up-left">↖</button>
+        <button type="button" class="key" data-dir="ArrowUp" aria-label="Roll up-right">↗</button>
+        <button type="button" class="key" data-dir="ArrowDown" aria-label="Roll down-left">↙</button>
+        <button type="button" class="key" data-dir="ArrowRight" aria-label="Roll down-right">↘</button>
       </div>
     </div>
     <div id="sys">
-      <div class="key" id="tcPause">⏸</div>
-      <div class="key" id="tcRestart">⟳</div>
-      <div class="key" id="tcTune">⚙</div>
+      <button type="button" class="key" id="tcPause" aria-label="Pause">⏸</button>
+      <button type="button" class="key" id="tcRestart" aria-label="Restart">⟳</button>
+      <button type="button" class="key" id="tcTune" aria-label="Tuning panel">⚙</button>
     </div>
   </div>
 

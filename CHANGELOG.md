@@ -29,7 +29,9 @@ Conventions used here:
     testing. Pointer Events + pointer capture (multi-touch safe, clean release when a
     finger slides off); keyboard hint hidden and start-screen copy swapped when active.
   - `index.html`: pad markup/CSS (mockup styles), viewport meta gains
-    `viewport-fit=cover`, pads respect safe-area insets. Pinch zoom stays enabled
+    `viewport-fit=cover`, pads respect safe-area insets. Keys are semantic
+    `<button type="button">` elements with aria-labels naming the on-screen roll
+    direction (review feedback). Pinch zoom stays enabled
     for accessibility (review feedback) — gameplay gestures are already suppressed
     by `touch-action: none` on the game surface and pads, while the menu overlays
     remain zoomable. (2026-06-10)
