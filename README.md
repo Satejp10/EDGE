@@ -145,6 +145,18 @@ EDGE/
 
 ---
 
+## License & affiliation
+
+**Source-visible, not open-source (yet).** You're welcome to read the code and play the
+game, but copying, redistribution, or reuse isn't permitted for now — see
+[LICENSE](LICENSE). The plan is to adopt a proper open-source license once the project
+matures.
+
+This is an **unofficial, non-profit fan recreation**. EDGE was created by **Mobigame**
+(published with **Two Tribes**); the name, design, and trademarks belong to their
+respective owners. This project is not affiliated with or endorsed by them, and is not
+monetized in any form. If you enjoy it, [buy the original](https://store.steampowered.com/app/38740/EDGE/).
+
 ## References
 
 - Original game: https://store.steampowered.com/app/38740/EDGE/

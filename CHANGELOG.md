@@ -15,7 +15,21 @@ Conventions used here:
 
 ## [Unreleased]
 
+### Added
+- `LICENSE` — all-rights-reserved-for-now license with a non-affiliation / fan-work
+  notice (EDGE © Mobigame / Two Tribes); open-source release planned later. README
+  gained a matching "License & affiliation" section. (2026-06-10)
+
+### Changed
+- Deploy workflow bumped ahead of GitHub's June 16, 2026 Node 24 enforcement:
+  `checkout` v4→v6, `setup-node` v4→v6 (build Node 20→24), `configure-pages` v5→v6,
+  `upload-pages-artifact` v3→v5, `deploy-pages` v4→v5. (2026-06-10)
+
 ### Notes
+- Full project audit on 2026-06-10: zero code defects found (port re-verified against
+  the original line-by-line), build deterministic, 0 npm vulnerabilities, live site
+  healthy. Remaining gaps: no CLAUDE.md, no test suite (planned alongside the
+  fixed-timestep refactor).
 - **Next planned task:** mobile touch controls (Cross + Diamond D-pads, settings toggle),
   feeding the existing `heldKeys`/`bufferedDir` input path. See `controls-mockup.html`.
 
