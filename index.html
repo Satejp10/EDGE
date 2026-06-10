@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>EDGE — recreation</title>
 <style>
   :root{ --ink:#2a2d34; --hud:#3a3f4b; --magenta:#d6249f; }
@@ -49,6 +49,31 @@
   #tune input[type=range]{flex:1;accent-color:#d6249f}
   #tune span{width:50px;text-align:right;font-variant-numeric:tabular-nums;color:#fff}
   #tune .tnote{margin-top:8px;opacity:.4;font-size:10px;line-height:1.5;letter-spacing:.02em}
+  #tune .padbtn{flex:1;background:#fff;border:none;border-radius:6px;padding:6px;font:inherit;
+    font-size:11px;letter-spacing:.14em;cursor:pointer;color:var(--ink)}
+
+  /* ===== touch controls (coarse-pointer devices; visibility gated in JS) ===== */
+  #touch{position:fixed;inset:0;pointer-events:none;-webkit-tap-highlight-color:transparent}
+  #touch .key{pointer-events:auto;touch-action:none;appearance:none;padding:0;margin:0;font:inherit;
+    background:rgba(255,255,255,.72);
+    border:1px solid rgba(58,63,75,.16);border-radius:14px;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;
+    font-size:22px;transition:transform .07s, background .07s, color .07s;}
+  #touch .key.pressed{background:var(--magenta);color:#fff;transform:scale(.93);border-color:transparent}
+  #pad{position:absolute;left:calc(16px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom))}
+  .cross{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:8px}
+  .cross .key{width:58px;height:58px}
+  .c-up{grid-column:2;grid-row:1}
+  .c-left{grid-column:1;grid-row:2}
+  .c-right{grid-column:3;grid-row:2}
+  .c-down{grid-column:2;grid-row:3}
+  .diamond{display:grid;grid-template-columns:repeat(2,58px);grid-template-rows:repeat(2,58px);gap:12px}
+  .diamond .key{width:58px;height:58px;font-size:24px}
+  #sys{position:absolute;right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));
+    display:flex;gap:12px;align-items:flex-end}
+  #sys .key{width:50px;height:50px;border-radius:50%;font-size:17px}
+  .cross.hidden,.diamond.hidden{display:none} /* .cross/.diamond display:grid is declared after .hidden, so re-assert it */
+  body.touch-on #hint{display:none}
 </style>
 </head>
 <body>
@@ -61,12 +86,34 @@
 
   <div id="hint">hold a direction to keep rolling &nbsp;·&nbsp; ride the <b>blue</b> platform &nbsp;·&nbsp; cross <b>amber</b> tiles fast — they fall &nbsp;·&nbsp; P pause · R restart</div>
 
+  <div id="touch" class="hidden">
+    <div id="pad">
+      <div id="padCross" class="cross hidden">
+        <button type="button" class="key c-up" data-dir="ArrowUp" aria-label="Roll up-right">▲</button>
+        <button type="button" class="key c-left" data-dir="ArrowLeft" aria-label="Roll up-left">◀</button>
+        <button type="button" class="key c-right" data-dir="ArrowRight" aria-label="Roll down-right">▶</button>
+        <button type="button" class="key c-down" data-dir="ArrowDown" aria-label="Roll down-left">▼</button>
+      </div>
+      <div id="padDiamond" class="diamond hidden">
+        <button type="button" class="key" data-dir="ArrowLeft" aria-label="Roll up-left">↖</button>
+        <button type="button" class="key" data-dir="ArrowUp" aria-label="Roll up-right">↗</button>
+        <button type="button" class="key" data-dir="ArrowDown" aria-label="Roll down-left">↙</button>
+        <button type="button" class="key" data-dir="ArrowRight" aria-label="Roll down-right">↘</button>
+      </div>
+    </div>
+    <div id="sys">
+      <button type="button" class="key" id="tcPause" aria-label="Pause">⏸</button>
+      <button type="button" class="key" id="tcRestart" aria-label="Restart">⟳</button>
+      <button type="button" class="key" id="tcTune" aria-label="Tuning panel">⚙</button>
+    </div>
+  </div>
+
   <div class="overlay" id="startScreen">
     <h1>EDGE</h1>
-    <p>roll · ride the moving block · don't linger on the amber tiles · reach the goal<br>
+    <p id="startHelp">roll · ride the moving block · don't linger on the amber tiles · reach the goal<br>
        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys move along the isometric diagonals</p>
     <button class="btn" id="startBtn">START</button>
-    <div class="tag">DESKTOP · KEYBOARD ONLY</div>
+    <div class="tag" id="modeTag">DESKTOP · KEYBOARD ONLY</div>
   </div>
 
   <div class="overlay hidden" id="winScreen">
@@ -87,6 +134,7 @@
     <div class="trow"><label>climb speed</label><input id="t_climb" type="range" min="0.5" max="3" step="0.05" value="1.5"><span id="v_climb">1.50×</span></div>
     <div class="trow"><label>cam azimuth</label><input id="t_azim" type="range" min="20" max="70" step="1" value="45"><span id="v_azim">45°</span></div>
     <div class="trow"><label>cam elevation</label><input id="t_elev" type="range" min="15" max="70" step="1" value="35"><span id="v_elev">35°</span></div>
+    <div class="trow hidden" id="t_padrow"><label>touch pad</label><button class="padbtn" id="t_pad">DIAMOND</button></div>
     <div class="tnote">press T to hide · controls assume azimuth ≈ 45° · tell me the values you like and I'll set them as defaults</div>
   </div>
 
