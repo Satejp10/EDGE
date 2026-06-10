@@ -16,9 +16,34 @@ Conventions used here:
 ## [Unreleased]
 
 ### Added
+- **Mobile touch controls** (roadmap item 1, design per `controls-mockup.html`). New
+  `src/touch.js` (DOM-only, callbacks injected — dependency graph stays acyclic):
+  - On-screen **D-pad bottom-left** — Diamond layout by default (each arrow points the
+    way the cube moves on screen), Cross layout via a new toggle row in the tuning
+    panel, persisted as `localStorage['edge.padLayout']`.
+  - **System buttons bottom-right**: ⏸ pause · ⟳ restart · ⚙ tune.
+  - Buttons feed the existing `heldKeys`/`bufferedDir` path via new
+    `touchPress`/`touchRelease` exports in `game/input.js`, so hold-to-roll and
+    tap-at-ledge-to-commit semantics are identical to the keyboard.
+  - Active only on coarse-pointer devices, or with a `?touch` URL flag for desktop
+    testing. Pointer Events + pointer capture (multi-touch safe, clean release when a
+    finger slides off); keyboard hint hidden and start-screen copy swapped when active.
+  - `index.html`: pad markup/CSS (mockup styles), viewport meta gains
+    `maximum-scale=1, user-scalable=no, viewport-fit=cover`, pads respect
+    safe-area insets. (2026-06-10)
 - `LICENSE` — all-rights-reserved-for-now license with a non-affiliation / fan-work
   notice (EDGE © Mobigame / Two Tribes); open-source release planned later. README
   gained a matching "License & affiliation" section. (2026-06-10)
+
+### Verified
+- Touch chain end-to-end in the dev preview at phone size (375×812, `?touch=1`),
+  driving real `PointerEvent`s: tap-to-roll, hold-to-roll, edge cling → same-direction
+  tap commits the fall → respawn; pause/restart/tune buttons; layout toggle + reload
+  persistence. Desktop unchanged (no pads, keyboard path re-verified, zero console
+  errors). `npm run build` clean (17 modules). Caught and fixed in review: `.hidden`
+  was overridden by the later `.cross`/`.diamond` display rules (CSS order) — both
+  pads showed at once; re-asserted with `.cross.hidden,.diamond.hidden`. Not yet
+  tested on a physical phone. (2026-06-10)
 
 ### Changed
 - Deploy workflow bumped ahead of GitHub's June 16, 2026 Node 24 enforcement:
@@ -30,8 +55,8 @@ Conventions used here:
   the original line-by-line), build deterministic, 0 npm vulnerabilities, live site
   healthy. Remaining gaps: no CLAUDE.md, no test suite (planned alongside the
   fixed-timestep refactor).
-- **Next planned task:** mobile touch controls (Cross + Diamond D-pads, settings toggle),
-  feeding the existing `heldKeys`/`bufferedDir` input path. See `controls-mockup.html`.
+- **Next planned task:** fixed-timestep loop + render interpolation, with the first
+  test suite alongside it (roadmap item 2).
 
 ---
 

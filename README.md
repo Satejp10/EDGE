@@ -6,7 +6,7 @@ reach the goal. Zero install — it runs in any modern browser.
 
 This is a personal nostalgia / craft project, not a commercial product.
 
-**▶ Play it: https://satejp10.github.io/EDGE/** (desktop / keyboard)
+**▶ Play it: https://satejp10.github.io/EDGE/** (desktop keyboard · mobile touch)
 
 > Original game: https://store.steampowered.com/app/38740/EDGE/
 
@@ -14,14 +14,12 @@ This is a personal nostalgia / craft project, not a commercial product.
 
 ## Status
 
-**Playable, migrated to a Vite repo.** Fully playable on desktop (keyboard). The game
-lives in ES modules under [`src/`](src/), built with Vite and deployed to GitHub Pages.
-The original single-file prototype is kept as [`edge.html`](edge.html) for reference.
+**Playable on desktop (keyboard) and mobile (touch).** The game lives in ES modules
+under [`src/`](src/), built with Vite and deployed to GitHub Pages. The original
+single-file prototype is kept as [`edge.html`](edge.html) for reference.
 
-The project has been migrated to a small **Vite + vanilla-JS** repo (modules under
-`src/`), auto-deployed to GitHub Pages. Next planned phase: mobile touch controls and
-more levels. See [CHANGELOG.md](CHANGELOG.md) for the running log and
-[the roadmap](#roadmap) below.
+Next planned phase: fixed-timestep loop (+ first tests) and more levels. See
+[CHANGELOG.md](CHANGELOG.md) for the running log and [the roadmap](#roadmap) below.
 
 ## Play it now
 
@@ -49,11 +47,17 @@ npm install   →   npm run dev   →   open the localhost URL Vite prints
 | `T` | Tuning panel (climb speed, camera azimuth/elevation) |
 
 The four moves land on screen **diagonals**: `↑`→up-right, `↓`→down-left,
-`→`→down-right, `←`→up-left. (This is why a diamond D-pad maps more intuitively than a
-cross — relevant for the upcoming touch controls.)
+`→`→down-right, `←`→up-left.
 
-Mobile touch controls are **designed but not yet built** — see
-[`controls-mockup.html`](controls-mockup.html) for the approved layout.
+## Controls (mobile)
+
+On coarse-pointer devices (or with `?touch` in the URL) an on-screen **D-pad** appears
+bottom-left and round **⏸ / ⟳ / ⚙** system buttons bottom-right. The default
+**diamond** pad points each arrow the way the cube actually moves on screen; a
+**cross** layout is available via the toggle in the tuning panel (⚙), persisted in
+`localStorage`. Hold an arrow to keep rolling; at a ledge, tap the same arrow again to
+commit the fall — identical semantics to the keyboard, because the buttons feed the
+same input path. Original mockup: [`controls-mockup.html`](controls-mockup.html).
 
 ---
 
@@ -104,11 +108,11 @@ project context).
 
 ## Roadmap
 
-1. **Vite + vanilla-JS migration** — behavior-preserving port of `edge.html` into a module
-   layout (`engine / render / game / levels`). *(immediate next task)*
-2. **Mobile touch controls** — Cross + Diamond D-pads switchable via a settings toggle,
-   feeding the same input path so hold-to-roll works for free. Coarse-pointer devices only.
-3. **Fixed-timestep loop + render interpolation** — make rolls land identically at 30/60/144 Hz.
+1. ~~**Vite + vanilla-JS migration**~~ — DONE (v0.2.0).
+2. ~~**Mobile touch controls**~~ — DONE: Cross + Diamond D-pads switchable via a settings
+   toggle, feeding the same input path so hold-to-roll works for free. Coarse-pointer
+   devices only.
+3. **Fixed-timestep loop + render interpolation** — make rolls land identically at 30/60/144 Hz. *(next)*
 4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
 5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema + loader.
 6. **Polish & deploy** — object pooling, profiling, error telemetry; host on a free static host.
@@ -128,9 +132,10 @@ EDGE/
     game/              # world.js, cube.js, dirs.js, input.js
     levels/level1.js   # the level literal
     ui.js              # HUD, overlays, tuning panel
+    touch.js           # mobile D-pad + system buttons (coarse-pointer only)
   .github/workflows/deploy.yml   # build + deploy to GitHub Pages
   edge.html            # original single-file prototype (reference)
-  controls-mockup.html # approved mobile control layout (reference, not wired in)
+  controls-mockup.html # mobile control layout mockup (now implemented in src/touch.js)
   README.md
   CHANGELOG.md         # running log of changes & progress
   HANDOFF_edge.md      # original project handoff / decision log (context)

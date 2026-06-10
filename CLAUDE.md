@@ -53,10 +53,9 @@ callbacks, they never import game logic.
 
 ## Roadmap (current order)
 
-1. **Mobile touch controls** ← next. Design approved: Cross + Diamond D-pads, settings
-   toggle (persist in localStorage), must feed the existing `heldKeys`/`bufferedDir`
-   input path; coarse-pointer devices only. Spec: `controls-mockup.html`.
-2. Fixed-timestep loop + render interpolation (+ first tests).
+1. ~~Mobile touch controls~~ — DONE 2026-06-10 (`src/touch.js`; Cross/Diamond D-pads,
+   `?touch` URL flag for desktop testing, layout persisted in localStorage).
+2. **Fixed-timestep loop + render interpolation (+ first tests)** ← next.
 3. Static/dynamic render split (cache the static floor).
 4. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`.
 5. JSON level loader + real levels.
