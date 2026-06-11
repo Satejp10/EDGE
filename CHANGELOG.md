@@ -16,6 +16,22 @@ Conventions used here:
 ## [Unreleased]
 
 ### Added
+- **Fixed-timestep loop + render interpolation** (roadmap item; pattern per
+  gafferongames.com/post/fix_your_timestep):
+  - New `src/engine/loop.js` — `createStepper(fixedDt, step)` accumulator. The sim now
+    advances in `FIXED_DT = 1/120 s` steps (`config.js`), so rolls, movers, and fallers
+    behave identically at 30/60/144 Hz displays. The 0.05 s hitch clamp moved into the
+    stepper (no spiral of death on tab-switch/GC pauses).
+  - `main.js` snapshots cube corners and mover visual positions after every sim step
+    and lerps between the last two states by the accumulator remainder (alpha) at
+    render time. Teleports (respawn, restart) snap instead of smearing (distance
+    guard + snapshot resync on start/restart). `sceneBlocks(now, moverPos)` accepts
+    interpolated mover positions; game logic still reads exact sim positions.
+  - **First test suite** — `npm test` runs Node's built-in `node:test` (zero new
+    dependencies): 21 tests across `tests/loop.test.js` (step count independent of
+    frame chunking, alpha bounds, hitch clamp), `tests/math.test.js` (Rodrigues
+    rotations, roll-landing geometry), and `tests/world.test.js` (heightAt, mover
+    ping-pong + easing, faller lifecycle, fixed-step determinism). (2026-06-11)
 - `LICENSE` — all-rights-reserved-for-now license with a non-affiliation / fan-work
   notice (EDGE © Mobigame / Two Tribes); open-source release planned later. README
   gained a matching "License & affiliation" section. (2026-06-10)
@@ -25,13 +41,20 @@ Conventions used here:
   `checkout` v4→v6, `setup-node` v4→v6 (build Node 20→24), `configure-pages` v5→v6,
   `upload-pages-artifact` v3→v5, `deploy-pages` v4→v5. (2026-06-10)
 
+### Verified
+- Fixed-timestep refactor: 21/21 tests green, `npm run build` clean (17 modules), and
+  a full play session in the dev preview (roll, hold-to-roll, edge commit, mover
+  riding, both prisms collected) with zero console errors. (2026-06-11)
+
 ### Notes
 - Full project audit on 2026-06-10: zero code defects found (port re-verified against
   the original line-by-line), build deterministic, 0 npm vulnerabilities, live site
   healthy. Remaining gaps: no CLAUDE.md, no test suite (planned alongside the
   fixed-timestep refactor).
-- **Next planned task:** mobile touch controls (Cross + Diamond D-pads, settings toggle),
-  feeding the existing `heldKeys`/`bufferedDir` input path. See `controls-mockup.html`.
+- Known visual issue (reported 2026-06-11, fix planned): floating prisms can overlap
+  the cube silhouette in the isometric projection on this level, which reads as
+  ambiguous/occluding. Needs a readability fix in the prism decal rendering.
+- **Next planned task:** static/dynamic render split (cache the static floor).
 
 ---
 

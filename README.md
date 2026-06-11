@@ -108,7 +108,8 @@ project context).
    layout (`engine / render / game / levels`). *(immediate next task)*
 2. **Mobile touch controls** — Cross + Diamond D-pads switchable via a settings toggle,
    feeding the same input path so hold-to-roll works for free. Coarse-pointer devices only.
-3. **Fixed-timestep loop + render interpolation** — make rolls land identically at 30/60/144 Hz.
+3. ~~**Fixed-timestep loop + render interpolation**~~ — DONE: 120 Hz fixed sim +
+   alpha-lerped rendering (`engine/loop.js`), first test suite via `npm test` (node:test).
 4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
 5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema + loader.
 6. **Polish & deploy** — object pooling, profiling, error telemetry; host on a free static host.

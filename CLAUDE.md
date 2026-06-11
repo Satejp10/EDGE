@@ -7,7 +7,7 @@ Personal non-profit passion project. Live: https://satejp10.github.io/EDGE/
 
 - `npm run dev` — Vite dev server (game at the printed localhost URL)
 - `npm run build` — production build to `dist/`
-- No tests yet (planned alongside the fixed-timestep refactor).
+- `npm test` — node:test suite in `tests/` (loop stepper, math, world). Zero test deps.
 
 ## Orientation — read these before working
 
@@ -56,8 +56,9 @@ callbacks, they never import game logic.
 1. **Mobile touch controls** ← next. Design approved: Cross + Diamond D-pads, settings
    toggle (persist in localStorage), must feed the existing `heldKeys`/`bufferedDir`
    input path; coarse-pointer devices only. Spec: `controls-mockup.html`.
-2. Fixed-timestep loop + render interpolation (+ first tests).
-3. Static/dynamic render split (cache the static floor).
+2. ~~Fixed-timestep loop + render interpolation (+ first tests)~~ — DONE 2026-06-11
+   (`engine/loop.js` stepper, FIXED_DT=1/120, lerped cube/mover rendering, 21 tests).
+3. Static/dynamic render split (cache the static floor). ← next
 4. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`.
 5. JSON level loader + real levels.
 6. Polish: pooling, profiling, telemetry.
