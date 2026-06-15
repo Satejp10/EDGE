@@ -18,7 +18,7 @@ This is a personal nostalgia / craft project, not a commercial product.
 under [`src/`](src/), built with Vite and deployed to GitHub Pages. The original
 single-file prototype is kept as [`edge.html`](edge.html) for reference.
 
-Next planned phase: fixed-timestep loop (+ first tests) and more levels. See
+Next planned phase: static/dynamic render split and more levels. See
 [CHANGELOG.md](CHANGELOG.md) for the running log and [the roadmap](#roadmap) below.
 
 ## Play it now
@@ -112,7 +112,8 @@ project context).
 2. ~~**Mobile touch controls**~~ — DONE: Cross + Diamond D-pads switchable via a settings
    toggle, feeding the same input path so hold-to-roll works for free. Coarse-pointer
    devices only.
-3. **Fixed-timestep loop + render interpolation** — make rolls land identically at 30/60/144 Hz. *(next)*
+3. ~~**Fixed-timestep loop + render interpolation**~~ — DONE: 120 Hz fixed sim +
+   alpha-lerped rendering (`engine/loop.js`), first test suite via `npm test` (node:test).
 4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
 5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema + loader.
 6. **Polish & deploy** — object pooling, profiling, error telemetry; host on a free static host.

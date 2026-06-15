@@ -1,5 +1,6 @@
 // ===== TIMING / TUNABLES =====
 
+export const FIXED_DT = 1 / 120; // simulation step, seconds — decoupled from display refresh
 export const BEAT = 0.85;        // global tick (mover cadence), seconds
 export const ROLL_SPEED = 7.5;   // rad/s
 export const EDGE_FRAC = 0.60;   // how far a cube tips when it clings to a ledge

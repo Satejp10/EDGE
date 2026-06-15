@@ -66,7 +66,9 @@ export function trailQuad(t) {
 }
 
 // Collect every solid block (static + faller + mover) as {c: corners, hex, a: alpha}.
-export function sceneBlocks(now) {
+// moverPos (optional) overrides mover visual positions — the main loop passes
+// render-interpolated positions; game logic keeps reading exact sim positions.
+export function sceneBlocks(now, moverPos) {
   const out = [];
   const pushCell = (x, y, h, hex, a) => {
     if (h <= 0) { out.push({ c: boxCorners([x, y, -0.175], 0.49, 0.49, 0.175), hex, a }); }
@@ -83,6 +85,9 @@ export function sceneBlocks(now) {
     if (h <= 0) { out.push({ c: boxCorners([f.x, f.y, -0.175 + zoff], 0.49, 0.49, 0.175), hex, a }); }
     else { for (let k = 0; k < h; k++) out.push({ c: boxCorners([f.x, f.y, k + 0.5 + zoff], 0.49, 0.49, 0.5), hex, a }); }
   }
-  for (const m of movers) { const vp = moverVisual(m); pushCell(vp[0], vp[1], m.h, 0xE7EFFF, 1); }
+  movers.forEach((m, i) => {
+    const vp = moverPos ? moverPos[i] : moverVisual(m);
+    pushCell(vp[0], vp[1], m.h, 0xE7EFFF, 1);
+  });
   return out;
 }
