@@ -110,8 +110,8 @@ project context).
 
 1. ~~**Vite + vanilla-JS migration**~~ — DONE (v0.2.0).
 2. ~~**Mobile touch controls**~~ — DONE: Cross + Diamond D-pads switchable via a settings
-   toggle, feeding the same input path so hold-to-roll works for free. Coarse-pointer
-   devices only.
+   toggle, feeding the same input path so hold-to-roll works for free. Auto-enabled on
+   coarse-pointer devices; forced on any device with `?touch` in the URL (desktop testing).
 3. ~~**Fixed-timestep loop + render interpolation**~~ — DONE: 120 Hz fixed sim +
    alpha-lerped rendering (`engine/loop.js`), first test suite via `npm test` (node:test).
 4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
@@ -133,7 +133,7 @@ EDGE/
     game/              # world.js, cube.js, dirs.js, input.js
     levels/level1.js   # the level literal
     ui.js              # HUD, overlays, tuning panel
-    touch.js           # mobile D-pad + system buttons (coarse-pointer only)
+    touch.js           # mobile D-pad + system buttons (coarse-pointer, or ?touch)
   .github/workflows/deploy.yml   # build + deploy to GitHub Pages
   edge.html            # original single-file prototype (reference)
   controls-mockup.html # mobile control layout mockup (now implemented in src/touch.js)
