@@ -6,34 +6,33 @@
 
 ---
 
-## TL;DR of what changed since the handoff
+## This week's update log (2026-06-11 → 2026-06-18)
 
-The project went from **one self-contained `edge.html`** to a **real Vite + vanilla-JS
-repo**, it's **live on the web**, it now has **mobile touch controls** and a
-**frame-rate-independent game loop with a test suite**.
+Everything below is **merged to `main` and live** at https://satejp10.github.io/EDGE/.
 
-1. **Git repo, public:** https://github.com/Satejp10/EDGE
-   **▶ Playable now: https://satejp10.github.io/EDGE/** (desktop keyboard · mobile touch).
-2. **Vite migration (2026-06-06)** — `edge.html` ported into ES modules under `src/`,
-   behavior-preserving (verified by an automated playthrough to a win).
-3. **Audit + hardening (2026-06-10)** — line-by-line port re-verification (zero defects),
-   deploy pipeline future-proofed (GitHub Actions bumped for the Node-24 cutover),
-   `LICENSE` added (all-rights-reserved-for-now + fan-work notice), `CLAUDE.md` added so
-   Claude Code sessions self-bootstrap.
-4. **Mobile touch controls (2026-06-10)** — `src/touch.js`: on-screen D-pad (Diamond
-   default, Cross via a tuning-panel toggle, choice saved in `localStorage`) + ⏸/⟳/⚙
-   system buttons. Feeds the **same** `heldKeys`/`bufferedDir` path (via `touchPress`/
-   `touchRelease`), so hold-to-roll and edge-commit feel identical to the keyboard.
-   Active on coarse-pointer devices or with `?touch` in the URL (desktop testing).
-   Semantic `<button>` elements + aria-labels; pinch-zoom kept for accessibility.
-   **Status: shipped on PR #1, OPEN and intentionally held for a physical-phone test —
-   do NOT merge until Satej phone-tests (merge auto-deploys to the live site).**
-5. **Fixed-timestep loop + render interpolation + first tests (2026-06-11, MERGED via
-   PR #2, live)** — `src/engine/loop.js` accumulator stepping the sim at
-   `FIXED_DT = 1/120 s`, so rolls/movers/fallers land identically at 30/60/144 Hz;
-   render lerps between the last two sim states by the leftover-time alpha (teleports
-   snap, not smear). **`npm test`** = Node's built-in `node:test`, **21 tests**, zero new
-   dependencies.
+1. **Mobile touch controls — shipped & live** (PR #1, merged 2026-06-18). On-screen D-pad
+   (Diamond default, Cross via a tuning-panel toggle, saved in `localStorage`) + ⏸/⟳/⚙
+   buttons, feeding the same input path as the keyboard. Active on touch devices or via
+   `?touch` in the URL. The game is now playable on **desktop *and* phone**.
+2. **Fixed-timestep loop + render interpolation + first test suite — shipped & live**
+   (PR #2). Sim steps at `FIXED_DT = 1/120 s`, so motion is identical at any refresh rate;
+   rendering lerps between sim states. `npm test` = Node's `node:test`, **21 tests**, no
+   new deps.
+3. **Prism-visibility readability fix — shipped & live** (PR #3, 2026-06-18). Floating
+   prism gems overlapped the cube on the 1-wide corridor; added a soft cyan floor-marker
+   disc under each prism (`drawPrismMark`) and lowered gem opacity 0.96→0.8. No gameplay
+   change.
+4. **Faller reform speed-up — shipped & live** (PR #4, 2026-06-18). Collapsed tiles come
+   back faster: `FALL_RESPAWN` 2.0 s → 1.2 s. Animation durations unchanged.
+5. **Housekeeping (around 2026-06-10):** full project audit (zero defects), deploy
+   pipeline future-proofed for GitHub's Node-24 cutover, `LICENSE` added
+   (all-rights-reserved-for-now + EDGE fan-work notice), `CLAUDE.md` added so Claude Code
+   sessions self-bootstrap.
+
+**Decided for next:** start building **real levels** (a JSON level loader + new stages) —
+see "What's next" below. Plan is drafted and approved; coding not started.
+
+---
 
 ## What the project is (memory refresh)
 
@@ -47,8 +46,8 @@ repo**, it's **live on the web**, it now has **mobile touch controls** and a
 
 ## Current state
 
-- **Stage:** Playable single level; structured Vite repo; deployed; tested.
-  Desktop keyboard **and** mobile touch both work.
+- **Stage:** Live and playable on desktop + mobile; structured Vite repo; tested.
+  Still **one level** — making it multi-level is the next task.
 - **Stack:** HTML5 + vanilla JS + Canvas 2D, built with **Vite** (the only runtime dep).
   No framework, no game engine, no WebGL. `npm test` via `node:test` (no test deps).
 - **Module layout** (`src/`): `main.js` (bootstrap + loop + render interpolation),
@@ -57,9 +56,8 @@ repo**, it's **live on the web**, it now has **mobile touch controls** and a
   `levels/level1.js`, `ui.js`, `touch.js`. Tests in `tests/`.
 - **Works (verified):** rolling + hold-to-roll, ±1 climb/descend (180° pivot), edging
   (cling / commit / recover), the moving platform carrying the cube, collapsing amber
-  fallers, prism pickup, fading trail, goal/win, pause (P/Esc), tuning panel (T),
-  restart (R), and the full mobile touch chain (driven with real PointerEvents at phone
-  size in the dev preview).
+  fallers, prism pickup, fading trail, goal/win, pause, tuning panel, restart, and the
+  full mobile touch chain.
 
 ## Key decisions to remember (still in force)
 
@@ -77,30 +75,26 @@ repo**, it's **live on the web**, it now has **mobile touch controls** and a
   prisms). Do **not** apply the editorial/brutalist portfolio aesthetic here.
   "Dark mode" = UI chrome preference, never darken the game art.
 - Working style: direct and concise, plain language (analogies help); **plan before
-  building anything visual and get sign-off first**; verify capabilities rather than
-  assuming; verify behavior by playing (build + browser), not just compiling.
+  building anything visual and get sign-off first**; verify behavior by playing (build +
+  browser), not just compiling.
 
-## What's next (roadmap)
+## What's next — real levels (chosen 2026-06-18, plan approved)
 
-1. ~~Mobile touch controls~~ — **DONE** (on PR #1, awaiting a physical-phone test before merge).
-2. ~~Fixed-timestep loop + render interpolation + first tests~~ — **DONE & merged (live).**
-3. **Static/dynamic render split** *(next up)* — cache the static floor; only redraw the
-   cube/movers/fallers each frame instead of rebuilding + re-projecting every block.
-4. **Robustness** — `unhandledrejection` handler + auto-pause on `visibilitychange`
-   (the rAF loop suspends while the tab is hidden; the beat clock/timer should pause too).
-5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema +
-   loader, then rebuild actual EDGE stages.
-6. **Polish & deploy hardening** — object pooling, device profiling, error telemetry.
+Turn the one hardcoded level into a **data-driven, multi-level game**:
 
-## In flight / pending sign-off
+- **Phase 1 — level system (behavior-preserving):** convert `levels/level1.js`→JSON + a
+  small level registry; add a `loadLevel()` that rebuilds world / cube / camera / render
+  state from level data (instead of today's "bake one LEVEL at import"); add a
+  "next level" win flow. **Level 1 must still play identically.** Keep tests green + add
+  loader tests.
+- **Phase 2 — content:** author 2–3 new original levels of rising difficulty; verify each
+  is solvable.
+- **Decisions made:** build-time JSON import (no runtime fetch — stays offline/static);
+  linear auto-advance progression; original "teaching" levels first (faithful recreations
+  of *actual* EDGE stages deferred — they need reference maps and are a bigger job).
 
-- **PR #1 (touch controls):** mergeable and clean, held only for a real-phone test.
-  Merge = deploy. CodeRabbit's review items (re-enable pinch zoom, semantic buttons,
-  `?touch` docs) are all addressed in commits; the one inline review thread is resolved.
-- **Prism-visibility tweak (awaiting OK):** on level 1's 1-wide corridor the floating
-  prisms (drawn at cube-body height) overlap the cube silhouette and read ambiguously.
-  Proposed, non-gameplay fix: a soft cyan tile-marker ellipse under each prism + drop
-  prism alpha ~0.96→0.8. Not applied yet.
+After this: static/dynamic render split (deferred perf), then robustness
+(`unhandledrejection` + auto-pause on tab-hidden), then more levels / polish.
 
 ## Open questions to confirm when relevant
 

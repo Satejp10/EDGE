@@ -53,12 +53,21 @@ callbacks, they never import game logic.
 
 ## Roadmap (current order)
 
-1. ~~Mobile touch controls~~ — DONE 2026-06-10 (`src/touch.js`; Cross/Diamond D-pads,
-   `?touch` URL flag for desktop testing, layout persisted in localStorage). PR #1 open,
-   on hold pending physical-phone test.
-2. ~~Fixed-timestep loop + render interpolation (+ first tests)~~ — DONE 2026-06-11
+1. ~~Mobile touch controls~~ — DONE, **merged & live** (PR #1, 2026-06-18). `src/touch.js`;
+   Cross/Diamond D-pads, `?touch` URL flag for desktop testing, layout in localStorage.
+2. ~~Fixed-timestep loop + render interpolation (+ first tests)~~ — DONE, merged & live
    (`engine/loop.js` stepper, FIXED_DT=1/120, lerped cube/mover rendering, 21 tests).
-3. **Static/dynamic render split (cache the static floor)** ← next.
-4. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`.
-5. JSON level loader + real levels.
-6. Polish: pooling, profiling, telemetry.
+3. ~~Polish: prism-visibility readability fix + faller reform speed-up~~ — DONE, merged &
+   live 2026-06-18 (`drawPrismMark` floor disc + gem alpha 0.8; `FALL_RESPAWN` 2.0→1.2s).
+4. **JSON level loader + real levels** ← NEXT (chosen 2026-06-18). Plan: Phase 1 =
+   data-driven, re-initializable level loading (convert `levels/level1.js`→JSON + registry,
+   add `loadLevel()`, make world/cube/camera/renderer read the active level instead of a
+   baked import, add a "next level" win flow) — **behavior-preserving for level 1**.
+   Phase 2 = author 2–3 new original levels. Decisions: build-time JSON import (no fetch),
+   linear auto-advance, original teaching levels first (faithful EDGE stage recreations
+   deferred). Plan drafted + approved; not started.
+5. Static/dynamic render split (cache the static floor) — deferred; premature for one
+   small level.
+6. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`
+   (timer/beat clock keep running when the tab is hidden — a real bug to fix here).
+7. Polish: pooling, profiling, telemetry.
