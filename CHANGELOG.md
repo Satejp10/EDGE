@@ -57,6 +57,9 @@ Conventions used here:
   gained a matching "License & affiliation" section. (2026-06-10)
 
 ### Changed
+- Collapsed faller tiles reform faster: `FALL_RESPAWN` 2.0 s → 1.2 s — the time a tile
+  stays gone before it rises back. Snappier retry; the arm / fall / rise animation
+  durations are unchanged. (2026-06-18)
 - Deploy workflow bumped ahead of GitHub's June 16, 2026 Node 24 enforcement:
   `checkout` v4→v6, `setup-node` v4→v6 (build Node 20→24), `configure-pages` v5→v6,
   `upload-pages-artifact` v3→v5, `deploy-pages` v4→v5. (2026-06-10)
