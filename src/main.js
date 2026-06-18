@@ -5,6 +5,7 @@ import { pushBox, fillPoly, drawPrism, drawGoal, trailQuad, sceneBlocks } from '
 import { tick as worldTick, resetWorld, goalH, movers, moverVisual } from './game/world.js';
 import { LEVEL } from './levels/level1.js';
 import { initInput, clearInput } from './game/input.js';
+import { initTouch } from './touch.js';
 import { createStepper } from './engine/loop.js';
 import { lerp } from './engine/math.js';
 import { FIXED_DT } from './config.js';
@@ -126,6 +127,7 @@ function frame(now) {
 // ===== WIRE-UP =====
 ui.initUI({ onStart, onAgain: restart, onResume: () => { if (paused) togglePause(); } });
 initInput({ onTap: cube.onTap, onRestart: restart, onTune: ui.toggleTune, onPause: togglePause });
+initTouch({ onPause: togglePause, onRestart: restart, onTune: ui.toggleTune });
 
 const s0 = cube.stats(); ui.updateHud(s0.collected, s0.total, s0.timeMs);
 

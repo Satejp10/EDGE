@@ -29,6 +29,15 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => { if (e.code in DIRS) heldKeys.delete(e.code); });
 
+// Touch D-pad entry points — mirror keydown/keyup exactly so on-screen buttons share
+// the heldKeys/bufferedDir semantics (hold-to-roll, tap-at-ledge-to-commit).
+export function touchPress(code) {
+  if (!(code in DIRS)) return;
+  heldKeys.add(code);
+  handlers.onTap(code);
+}
+export function touchRelease(code) { heldKeys.delete(code); }
+
 export function setBufferedDir(code) { bufferedDir = code; }
 
 export function nextDir() {

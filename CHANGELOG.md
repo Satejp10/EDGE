@@ -32,6 +32,26 @@ Conventions used here:
     frame chunking, alpha bounds, hitch clamp), `tests/math.test.js` (Rodrigues
     rotations, roll-landing geometry), and `tests/world.test.js` (heightAt, mover
     ping-pong + easing, faller lifecycle, fixed-step determinism). (2026-06-11)
+- **Mobile touch controls** (roadmap item 1, design per `controls-mockup.html`). New
+  `src/touch.js` (DOM-only, callbacks injected — dependency graph stays acyclic):
+  - On-screen **D-pad bottom-left** — Diamond layout by default (each arrow points the
+    way the cube moves on screen), Cross layout via a new toggle row in the tuning
+    panel, persisted as `localStorage['edge.padLayout']`.
+  - **System buttons bottom-right**: ⏸ pause · ⟳ restart · ⚙ tune.
+  - Buttons feed the existing `heldKeys`/`bufferedDir` path via new
+    `touchPress`/`touchRelease` exports in `game/input.js`, so hold-to-roll and
+    tap-at-ledge-to-commit semantics are identical to the keyboard.
+  - Active only on coarse-pointer devices, or with a `?touch` URL flag for desktop
+    testing. Pointer Events + pointer capture (multi-touch safe, clean release when a
+    finger slides off); keyboard hint hidden and start-screen copy swapped when active.
+  - `index.html`: pad markup/CSS (mockup styles), viewport meta gains
+    `viewport-fit=cover`, pads respect safe-area insets. Keys are semantic
+    `<button type="button">` elements with aria-labels naming the on-screen roll
+    direction (review feedback). Pinch zoom stays enabled
+    for accessibility (review feedback) — gameplay gestures are already suppressed
+    by `touch-action: none` on the game surface and pads, while the menu overlays
+    remain zoomable. (2026-06-10)
+  - *Note:* shipped behind PR #1, held for a physical-phone test; not yet merged.
 - `LICENSE` — all-rights-reserved-for-now license with a non-affiliation / fan-work
   notice (EDGE © Mobigame / Two Tribes); open-source release planned later. README
   gained a matching "License & affiliation" section. (2026-06-10)
@@ -45,6 +65,14 @@ Conventions used here:
 - Fixed-timestep refactor: 21/21 tests green, `npm run build` clean (17 modules), and
   a full play session in the dev preview (roll, hold-to-roll, edge commit, mover
   riding, both prisms collected) with zero console errors. (2026-06-11)
+- Touch chain end-to-end in the dev preview at phone size (375×812, `?touch=1`),
+  driving real `PointerEvent`s: tap-to-roll, hold-to-roll, edge cling → same-direction
+  tap commits the fall → respawn; pause/restart/tune buttons; layout toggle + reload
+  persistence. Desktop unchanged (no pads, keyboard path re-verified, zero console
+  errors). `npm run build` clean (17 modules). Caught and fixed in review: `.hidden`
+  was overridden by the later `.cross`/`.diamond` display rules (CSS order) — both
+  pads showed at once; re-asserted with `.cross.hidden,.diamond.hidden`. Not yet
+  tested on a physical phone. (2026-06-10)
 
 ### Notes
 - Full project audit on 2026-06-10: zero code defects found (port re-verified against

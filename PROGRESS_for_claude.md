@@ -1,40 +1,39 @@
 # EDGE — progress update (paste into Claude.ai)
 
 > Purpose: bring a Claude.ai chat up to speed on where the EDGE project stands and
-> refresh its memory of the key decisions. Last updated **2026-06-10**.
+> refresh its memory of the key decisions. Last updated **2026-06-18**.
 > This complements the original `HANDOFF_edge.md` — read this for "what's true now."
 
 ---
 
 ## TL;DR of what changed since the handoff
 
-The project moved from **one self-contained `edge.html`** to a **real Vite + vanilla-JS
-repo**, it's **live on the web**, and it has passed a **full project audit**.
+The project went from **one self-contained `edge.html`** to a **real Vite + vanilla-JS
+repo**, it's **live on the web**, it now has **mobile touch controls** and a
+**frame-rate-independent game loop with a test suite**.
 
 1. **Git repo, public:** https://github.com/Satejp10/EDGE
-2. **Vite migration done (2026-06-06)** — `edge.html` ported into ES modules under
-   `src/`, with **gameplay, look, and controls unchanged** (deliberate
-   behavior-preserving port, verified by an automated playthrough to a win).
-3. **Deployed** — auto-builds to GitHub Pages on every push to `main`.
-   **▶ Playable now: https://satejp10.github.io/EDGE/** (desktop / keyboard).
-4. **Full audit passed (2026-06-10)** — port re-verified against the original
-   line-by-line: zero code defects, deterministic build, 0 npm vulnerabilities,
-   pipeline green, live site healthy, docs accurate.
-5. **Deploy pipeline future-proofed (2026-06-10)** — all GitHub Actions bumped to
-   current majors (checkout/setup-node v6, configure-pages v6, upload-pages-artifact v5,
-   deploy-pages v5; build Node 20→24) ahead of GitHub's June 16, 2026 Node-24
-   enforcement. Verified: deploy runs clean with zero deprecation warnings.
-6. **License added (2026-06-10)** — `LICENSE` is **all-rights-reserved-for-now**:
-   anyone may view the source and play, nobody may copy/redistribute/reuse yet.
-   Includes a non-affiliation fan-work notice (EDGE © Mobigame / Two Tribes; unofficial,
-   non-commercial tribute). Open-source release planned later — owner decides when.
-7. **`CLAUDE.md` added (2026-06-10)** — Claude Code sessions in the repo folder now
-   bootstrap automatically (constraints, working agreements, roadmap).
-
-Nothing about *how the game plays* has changed since the prototype. All work so far has
-been restructuring, hosting, hardening, and documentation.
-
----
+   **▶ Playable now: https://satejp10.github.io/EDGE/** (desktop keyboard · mobile touch).
+2. **Vite migration (2026-06-06)** — `edge.html` ported into ES modules under `src/`,
+   behavior-preserving (verified by an automated playthrough to a win).
+3. **Audit + hardening (2026-06-10)** — line-by-line port re-verification (zero defects),
+   deploy pipeline future-proofed (GitHub Actions bumped for the Node-24 cutover),
+   `LICENSE` added (all-rights-reserved-for-now + fan-work notice), `CLAUDE.md` added so
+   Claude Code sessions self-bootstrap.
+4. **Mobile touch controls (2026-06-10)** — `src/touch.js`: on-screen D-pad (Diamond
+   default, Cross via a tuning-panel toggle, choice saved in `localStorage`) + ⏸/⟳/⚙
+   system buttons. Feeds the **same** `heldKeys`/`bufferedDir` path (via `touchPress`/
+   `touchRelease`), so hold-to-roll and edge-commit feel identical to the keyboard.
+   Active on coarse-pointer devices or with `?touch` in the URL (desktop testing).
+   Semantic `<button>` elements + aria-labels; pinch-zoom kept for accessibility.
+   **Status: shipped on PR #1, OPEN and intentionally held for a physical-phone test —
+   do NOT merge until Satej phone-tests (merge auto-deploys to the live site).**
+5. **Fixed-timestep loop + render interpolation + first tests (2026-06-11, MERGED via
+   PR #2, live)** — `src/engine/loop.js` accumulator stepping the sim at
+   `FIXED_DT = 1/120 s`, so rolls/movers/fallers land identically at 30/60/144 Hz;
+   render lerps between the last two sim states by the leftover-time alpha (teleports
+   snap, not smear). **`npm test`** = Node's built-in `node:test`, **21 tests**, zero new
+   dependencies.
 
 ## What the project is (memory refresh)
 
@@ -48,54 +47,60 @@ been restructuring, hosting, hardening, and documentation.
 
 ## Current state
 
-- **Stage:** Playable single level; structured Vite repo; deployed; audited.
-- **Stack:** HTML5 + vanilla JS + Canvas 2D, built with **Vite** (the only dependency).
-  No framework, no game engine, no WebGL.
-- **Module layout** (`src/`): `main.js` (bootstrap + loop), `config.js`,
-  `engine/math.js`, `render/{canvas,camera,renderer}.js`,
-  `game/{world,cube,dirs,input}.js`, `levels/level1.js`, `ui.js`.
+- **Stage:** Playable single level; structured Vite repo; deployed; tested.
+  Desktop keyboard **and** mobile touch both work.
+- **Stack:** HTML5 + vanilla JS + Canvas 2D, built with **Vite** (the only runtime dep).
+  No framework, no game engine, no WebGL. `npm test` via `node:test` (no test deps).
+- **Module layout** (`src/`): `main.js` (bootstrap + loop + render interpolation),
+  `config.js` (timings incl. `FIXED_DT`), `engine/{math,loop}.js`,
+  `render/{canvas,camera,renderer}.js`, `game/{world,cube,dirs,input}.js`,
+  `levels/level1.js`, `ui.js`, `touch.js`. Tests in `tests/`.
 - **Works (verified):** rolling + hold-to-roll, ±1 climb/descend (180° pivot), edging
   (cling / commit / recover), the moving platform carrying the cube, collapsing amber
   fallers, prism pickup, fading trail, goal/win, pause (P/Esc), tuning panel (T),
-  restart (R).
+  restart (R), and the full mobile touch chain (driven with real PointerEvents at phone
+  size in the dev preview).
 
 ## Key decisions to remember (still in force)
 
 - **Canvas 2D hand-rolled renderer, NOT WebGL/three.js.** The original three.js version
   crashed on software/lowp GL contexts. Do **not** reintroduce WebGL/three.js without a
   proven reason. This is the single most important constraint.
-- **Vanilla JS, no game engine** (Phaser/Pixi are overkill/mismatched). Keep it a static,
-  build-to-`dist` site. Don't add dependencies without asking.
+- **Vanilla JS, no game engine** (Phaser/Pixi are overkill/mismatched). Static,
+  build-to-`dist` site. Don't add dependencies without asking. (`node:test` keeps the
+  test suite dependency-free.)
 - **No audio, no backend/accounts** for the core demo.
 - **TypeScript: deferred** (later, not now).
 - **License: all-rights-reserved-for-now**, open-source later (owner's call on timing).
   Keep the fan-work / non-affiliation framing intact.
 - **The look is dictated by EDGE** (light bg, glossy white blocks, magenta cube, cyan
   prisms). Do **not** apply the editorial/brutalist portfolio aesthetic here.
+  "Dark mode" = UI chrome preference, never darken the game art.
 - Working style: direct and concise, plain language (analogies help); **plan before
   building anything visual and get sign-off first**; verify capabilities rather than
-  assuming.
+  assuming; verify behavior by playing (build + browser), not just compiling.
 
-## What's next (roadmap, in order)
+## What's next (roadmap)
 
-1. **Mobile touch controls** *(next up)* — design approved. Cross + Diamond D-pads,
-   switchable via a settings toggle (persist in `localStorage`), gear button for the
-   tuning panel. Touch must feed the **same** input path (`heldKeys`/`bufferedDir`) so
-   hold-to-roll works for free. Show only on coarse-pointer/touch devices.
-   Spec: `controls-mockup.html` in the repo.
-2. **Fixed-timestep loop + render interpolation** — make rolls land identically at any
-   refresh rate (currently variable-`dt`). First tests land alongside this.
-3. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
+1. ~~Mobile touch controls~~ — **DONE** (on PR #1, awaiting a physical-phone test before merge).
+2. ~~Fixed-timestep loop + render interpolation + first tests~~ — **DONE & merged (live).**
+3. **Static/dynamic render split** *(next up)* — cache the static floor; only redraw the
+   cube/movers/fallers each frame instead of rebuilding + re-projecting every block.
 4. **Robustness** — `unhandledrejection` handler + auto-pause on `visibilitychange`
    (the rAF loop suspends while the tab is hidden; the beat clock/timer should pause too).
 5. **JSON level loader + real levels** — promote the inline `LEVEL` literal to a schema +
    loader, then rebuild actual EDGE stages.
 6. **Polish & deploy hardening** — object pooling, device profiling, error telemetry.
 
-## Known gaps (acknowledged, not urgent)
+## In flight / pending sign-off
 
-- No test suite yet (planned with the fixed-timestep refactor, roadmap step 2).
-- Timer/beat clock keep running if the tab is hidden mid-game (roadmap step 4 fixes).
+- **PR #1 (touch controls):** mergeable and clean, held only for a real-phone test.
+  Merge = deploy. CodeRabbit's review items (re-enable pinch zoom, semantic buttons,
+  `?touch` docs) are all addressed in commits; the one inline review thread is resolved.
+- **Prism-visibility tweak (awaiting OK):** on level 1's 1-wide corridor the floating
+  prisms (drawn at cube-body height) overlap the cube silhouette and read ambiguously.
+  Proposed, non-gameplay fix: a soft cyan tile-marker ellipse under each prism + drop
+  prism alpha ~0.96→0.8. Not applied yet.
 
 ## Open questions to confirm when relevant
 
@@ -106,6 +111,6 @@ been restructuring, hosting, hardening, and documentation.
 
 ---
 
-*For full history and per-change detail, see `CHANGELOG.md`. For original rationale and
-the decision log, see `HANDOFF_edge.md`. For Claude Code sessions, `CLAUDE.md` in the
-repo root is the bootstrap — no pasting needed there.*
+*For full per-change detail, see `CHANGELOG.md`. For original rationale and the decision
+log, see `HANDOFF_edge.md`. For Claude Code sessions, `CLAUDE.md` in the repo root is the
+bootstrap — no pasting needed there.*
