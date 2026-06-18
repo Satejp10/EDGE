@@ -43,12 +43,27 @@ export function fillPoly(pts, fill, stroke, alpha) {
   ctx.globalAlpha = 1;
 }
 
+// Soft cyan disc on the prism's tile. Sorts at floor level (separate decal), so it
+// stays readable even when the floating gem overlaps the cube on a 1-wide corridor.
+export function drawPrismMark(p) {
+  const s = p.taken ? Math.max(0, 1 - p.pop) : 1; if (s <= 0) return;
+  const c = project([p.x, p.y, p.h + 0.02]);
+  const rx = 0.30 * S, ry = rx * 0.5;
+  ctx.save();
+  ctx.globalAlpha = 0.22 * s; ctx.fillStyle = '#15b9c9';
+  ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 0.5 * s; ctx.strokeStyle = '#0a7f8c'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+
 export function drawPrism(p, now) {
   const bob = Math.sin(now * 0.003 + p.x) * 0.06; const s = p.taken ? Math.max(0, 1 - p.pop) : 1; if (s <= 0) return;
   const ctr = project([p.x, p.y, p.h + 0.55 + bob]); const r = 0.24 * S * s;
   const top = [ctr[0], ctr[1] - r], bot = [ctr[0], ctr[1] + r], lf = [ctr[0] - r * 0.72, ctr[1]], rt = [ctr[0] + r * 0.72, ctr[1]];
-  fillPoly([top, rt, bot, lf], '#15b9c9', '#0a7f8c', 0.96);
-  fillPoly([top, rt, [ctr[0], ctr[1]], lf], '#7fe6f0', null, 0.9);
+  // Lower opacity than before (0.96 -> 0.8) so the cube reads through an overlapping gem.
+  fillPoly([top, rt, bot, lf], '#15b9c9', '#0a7f8c', 0.8);
+  fillPoly([top, rt, [ctr[0], ctr[1]], lf], '#7fe6f0', null, 0.78);
 }
 
 export function drawGoal(now) {

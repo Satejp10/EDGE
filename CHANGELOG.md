@@ -15,6 +15,15 @@ Conventions used here:
 
 ## [Unreleased]
 
+### Fixed
+- **Prism visibility on the 1-wide corridor** — the floating prism gems (drawn at
+  cube-body height) overlapped the cube silhouette and read ambiguously on level 1.
+  Added a soft cyan tile-marker disc under each prism (`drawPrismMark` in
+  `render/renderer.js`, sorted as a separate floor-level decal so it stays readable when
+  the gem overlaps the cube) and lowered the gem opacity (0.96 → 0.8) so the cube reads
+  through. Marker fades with the prism on pickup. No geometry or gameplay change.
+  (2026-06-18)
+
 ### Added
 - **Fixed-timestep loop + render interpolation** (roadmap item; pattern per
   gafferongames.com/post/fix_your_timestep):

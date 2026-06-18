@@ -1,7 +1,7 @@
 // ===== BOOTSTRAP + MAIN LOOP =====
 import { ctx, W, H, resize } from './render/canvas.js';
 import { computeView, depthOf } from './render/camera.js';
-import { pushBox, fillPoly, drawPrism, drawGoal, trailQuad, sceneBlocks } from './render/renderer.js';
+import { pushBox, fillPoly, drawPrism, drawPrismMark, drawGoal, trailQuad, sceneBlocks } from './render/renderer.js';
 import { tick as worldTick, resetWorld, goalH, movers, moverVisual } from './game/world.js';
 import { LEVEL } from './levels/level1.js';
 import { initInput, clearInput } from './game/input.js';
@@ -108,12 +108,17 @@ function frame(now) {
     pushBox(list, corners, 0xd6249f, '#7a0e5e', cube.cubeAlpha);
     for (const t of cube.trail) list.push({ dep: depthOf([t.x, t.y, t.h + 0.012]) + 0.05, decal: 'trail', t });
     list.push({ dep: depthOf([LEVEL.goal[0], LEVEL.goal[1], goalH + 0.02]) + 0.04, decal: 'goal' });
-    for (const p of cube.prisms) { if (p.taken && p.pop >= 1) continue; list.push({ dep: depthOf([p.x, p.y, p.h + 0.55]) + 0.02, decal: 'prism', p }); }
+    for (const p of cube.prisms) {
+      if (p.taken && p.pop >= 1) continue;
+      list.push({ dep: depthOf([p.x, p.y, p.h + 0.02]) + 0.02, decal: 'prismMark', p }); // floor-level marker
+      list.push({ dep: depthOf([p.x, p.y, p.h + 0.55]) + 0.02, decal: 'prism', p });      // floating gem
+    }
 
     list.sort((a, b) => a.dep - b.dep);
     for (const it of list) {
       if (it.decal === 'trail') { fillPoly(trailQuad(it.t), '#d6249f', null, Math.max(0, it.t.life / 1.4) * 0.30); }
       else if (it.decal === 'goal') { drawGoal(animClock); }
+      else if (it.decal === 'prismMark') { drawPrismMark(it.p); }
       else if (it.decal === 'prism') { drawPrism(it.p, animClock); }
       else { fillPoly(it.pts, it.fill, it.stroke, it.alpha); }
     }
