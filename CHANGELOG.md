@@ -37,6 +37,15 @@ Conventions used here:
     Phase 2 adds more levels. (2026-06-18)
 
 ### Fixed
+- **Prism gem fades on approach so it no longer reads as "stuck inside" the cube** —
+  a follow-up to the earlier disc + alpha fix, which softened but didn't remove the
+  overlap. The floating gem sits at `h+0.55`, inside the cube's `h+0.05..0.95` body, so
+  rolling onto a prism tile drew a semi-transparent gem over the magenta cube (reported
+  confusing). `main.js` now computes the cube's render-center XY and fades each gem by
+  proximity (`drawPrism(p, now, fade)` in `render/renderer.js`): full opacity a tile
+  away, fully gone within ~0.3 of the cell — the cyan floor disc stays as the marker
+  during the overlap. Render-only; pickup/scoring, the floor disc, and distant prisms
+  are unchanged. (2026-06-24)
 - **Prism visibility on the 1-wide corridor** — the floating prism gems (drawn at
   cube-body height) overlapped the cube silhouette and read ambiguously on level 1.
   Added a soft cyan tile-marker disc under each prism (`drawPrismMark` in

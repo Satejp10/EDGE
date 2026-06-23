@@ -121,10 +121,17 @@ function frame(now) {
     for (const t of cube.trail) list.push({ dep: depthOf([t.x, t.y, t.h + 0.012]) + 0.05, decal: 'trail', t });
     const goal = getLevel().goal;
     list.push({ dep: depthOf([goal[0], goal[1], goalH + 0.02]) + 0.04, decal: 'goal' });
+    // Cube center (XY) — used to fade a floating gem out as the cube rolls onto its
+    // tile, so the gem never reads as "stuck inside" the cube (the floor disc stays).
+    let cubeCx = 0, cubeCy = 0;
+    for (const c of corners) { cubeCx += c[0]; cubeCy += c[1]; }
+    cubeCx /= corners.length; cubeCy /= corners.length;
     for (const p of cube.prisms) {
       if (p.taken && p.pop >= 1) continue;
+      const d = Math.hypot(cubeCx - p.x, cubeCy - p.y);
+      const fade = Math.min(1, Math.max(0, (d - 0.3) / 0.7)); // 0 on the tile, 1 a tile away
       list.push({ dep: depthOf([p.x, p.y, p.h + 0.02]) + 0.02, decal: 'prismMark', p }); // floor-level marker
-      list.push({ dep: depthOf([p.x, p.y, p.h + 0.55]) + 0.02, decal: 'prism', p });      // floating gem
+      list.push({ dep: depthOf([p.x, p.y, p.h + 0.55]) + 0.02, decal: 'prism', p, fade }); // floating gem
     }
 
     list.sort((a, b) => a.dep - b.dep);
@@ -132,7 +139,7 @@ function frame(now) {
       if (it.decal === 'trail') { fillPoly(trailQuad(it.t), '#d6249f', null, Math.max(0, it.t.life / 1.4) * 0.30); }
       else if (it.decal === 'goal') { drawGoal(animClock); }
       else if (it.decal === 'prismMark') { drawPrismMark(it.p); }
-      else if (it.decal === 'prism') { drawPrism(it.p, animClock); }
+      else if (it.decal === 'prism') { drawPrism(it.p, animClock, it.fade); }
       else { fillPoly(it.pts, it.fill, it.stroke, it.alpha); }
     }
 
