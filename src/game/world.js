@@ -2,19 +2,37 @@
 // Static cells, moving platforms, and collapsing fallers, plus the live collision
 // query heightAt() and the global beat clock.
 import { ease, cellLerp } from '../engine/math.js';
-import { LEVEL } from '../levels/level1.js';
+import { getLevel } from '../levels/registry.js';
 import { BEAT, FALL_DELAY, FALL_ANIM, FALL_RESPAWN } from '../config.js';
 
-export const staticMap = new Map(LEVEL.cells.map((c) => [c[0] + ',' + c[1], c[2] || 0]));
-export const fallerList = LEVEL.fallers.map(([x, y, h]) => ({ x, y, h: h || 0, state: 'solid', t: 0 }));
-export const fallerMap = new Map(fallerList.map((f) => [f.x + ',' + f.y, f]));
-export const movers = LEVEL.movers.map((m) => ({
-  path: m.path, h: m.h || 0, mode: m.mode || 'pingpong', idx: 0, dir: 1, prev: m.path[0], cur: m.path[0],
-}));
-export const goalH = (staticMap.get(LEVEL.goal[0] + ',' + LEVEL.goal[1]) || 0);
+// Stable container identities — rebuilt in place by initWorld() so importers
+// (renderer, main) keep valid references across a level switch.
+export const staticMap = new Map();
+export const fallerList = [];
+export const fallerMap = new Map();
+export const movers = [];
+export let goalH = 0;
 
 // Beat clock — module-private; advanced via tick(), read by moverVisual().
 let beatPhase = 0;
+
+// Build all world state from the active level. Called once at import (so the module
+// is valid immediately — tests rely on this) and again by loadLevel() on a switch.
+export function initWorld() {
+  const L = getLevel();
+  staticMap.clear();
+  for (const c of L.cells) staticMap.set(c[0] + ',' + c[1], c[2] || 0);
+  fallerList.length = 0;
+  for (const [x, y, h] of L.fallers) fallerList.push({ x, y, h: h || 0, state: 'solid', t: 0 });
+  fallerMap.clear();
+  for (const f of fallerList) fallerMap.set(f.x + ',' + f.y, f);
+  movers.length = 0;
+  for (const m of L.movers) movers.push({
+    path: m.path, h: m.h || 0, mode: m.mode || 'pingpong', idx: 0, dir: 1, prev: m.path[0], cur: m.path[0],
+  });
+  goalH = staticMap.get(L.goal[0] + ',' + L.goal[1]) || 0;
+  beatPhase = 0;
+}
 
 export function moverVisual(m) {
   const t = ease(Math.min(1, beatPhase / BEAT));
@@ -75,3 +93,5 @@ export function resetWorld() {
   fallerList.forEach((f) => { f.state = 'solid'; f.t = 0; });
   movers.forEach((m) => { m.idx = 0; m.dir = 1; m.prev = m.path[0]; m.cur = m.path[0]; });
 }
+
+initWorld(); // initialize to the active level at import (default: level 1)

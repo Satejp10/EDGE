@@ -24,7 +24,8 @@ Hand-rolled **Canvas 2D isometric renderer** (projection + Rodrigues rotation + 
 sort). `main.js` bootstraps and runs the loop; `engine/math.js` (vectors/rotations);
 `render/` (canvas, camera, renderer); `game/` (world = heightAt/movers/fallers/beat clock,
 cube = roll/edge/fall state machine, input = keyboard layer, dirs = direction table);
-`levels/level1.js` (level literal); `ui.js` (HUD/overlays/tuning panel); `config.js`
+`levels/` (`*.json` level data + `registry.js` = catalog + active-level pointer; `main.js`
+owns `loadLevel()`); `ui.js` (HUD/overlays/tuning panel); `config.js`
 (timing constants + live-tunable settings). Dependency graph is acyclic — input/ui take
 callbacks, they never import game logic.
 
@@ -59,13 +60,13 @@ callbacks, they never import game logic.
    (`engine/loop.js` stepper, FIXED_DT=1/120, lerped cube/mover rendering, 21 tests).
 3. ~~Polish: prism-visibility readability fix + faller reform speed-up~~ — DONE, merged &
    live 2026-06-18 (`drawPrismMark` floor disc + gem alpha 0.8; `FALL_RESPAWN` 2.0→1.2s).
-4. **JSON level loader + real levels** ← NEXT (chosen 2026-06-18). Plan: Phase 1 =
-   data-driven, re-initializable level loading (convert `levels/level1.js`→JSON + registry,
-   add `loadLevel()`, make world/cube/camera/renderer read the active level instead of a
-   baked import, add a "next level" win flow) — **behavior-preserving for level 1**.
-   Phase 2 = author 2–3 new original levels. Decisions: build-time JSON import (no fetch),
-   linear auto-advance, original teaching levels first (faithful EDGE stage recreations
-   deferred). Plan drafted + approved; not started.
+4. **JSON level loader + real levels** ← IN PROGRESS. ~~Phase 1 = data-driven,
+   re-initializable level loading (`levels/*.json` + `registry.js`, `loadLevel()`,
+   world/cube/camera/renderer read the active level, next-level win flow)~~ — DONE
+   2026-06-18, behavior-preserving for level 1 (21 tests green, headless playthrough to a
+   win verified; not yet committed/merged). **Phase 2 = author 2–3 new original teaching
+   levels** ← NEXT. Decisions: build-time JSON import (no fetch), linear auto-advance,
+   original teaching levels first (faithful EDGE stage recreations deferred).
 5. Static/dynamic render split (cache the static floor) — deferred; premature for one
    small level.
 6. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`

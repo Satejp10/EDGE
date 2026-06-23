@@ -2,7 +2,7 @@
 import { ctx } from './canvas.js';
 import { project, depthOf, camDir, lightDir, S } from './camera.js';
 import { sub, cross, dot, norm } from '../engine/math.js';
-import { LEVEL } from '../levels/level1.js';
+import { getLevel } from '../levels/registry.js';
 import { FALL_ANIM } from '../config.js';
 import { fallerList, movers, moverVisual, goalH } from '../game/world.js';
 
@@ -67,7 +67,7 @@ export function drawPrism(p, now) {
 }
 
 export function drawGoal(now) {
-  const g = LEVEL.goal; const c = project([g[0], g[1], goalH + 0.02]);
+  const g = getLevel().goal; const c = project([g[0], g[1], goalH + 0.02]);
   const rx = 0.40 * S, ry = 0.40 * S * 0.5, pulse = 1 + Math.sin(now * 0.004) * 0.08;
   ctx.save(); ctx.globalAlpha = 0.9; ctx.strokeStyle = '#10c2a8'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.ellipse(c[0], c[1], rx * pulse, ry * pulse, 0, 0, Math.PI * 2); ctx.stroke();
@@ -89,7 +89,7 @@ export function sceneBlocks(now, moverPos) {
     if (h <= 0) { out.push({ c: boxCorners([x, y, -0.175], 0.49, 0.49, 0.175), hex, a }); }
     else { for (let k = 0; k < h; k++) out.push({ c: boxCorners([x, y, k + 0.5], 0.49, 0.49, 0.5), hex, a }); }
   };
-  for (const [x, y, h0] of LEVEL.cells) pushCell(x, y, h0 || 0, 0xffffff, 1);
+  for (const [x, y, h0] of getLevel().cells) pushCell(x, y, h0 || 0, 0xffffff, 1);
   for (const f of fallerList) {
     if (f.state === 'gone') continue;
     let zoff = 0, a = 1, hex = 0xF0E2C4;

@@ -15,6 +15,27 @@ Conventions used here:
 
 ## [Unreleased]
 
+### Added
+- **Data-driven level system — Phase 1** (roadmap item 4, behavior-preserving for level 1):
+  - `src/levels/level1.json` — the level promoted from a JS literal to JSON data
+    (values unchanged). `src/levels/registry.js` — the level catalog (`LEVELS`, built-time
+    JSON import via the `with { type: 'json' }` attribute — works in both Vite and
+    `node --test`) plus the active-level pointer (`getLevel`/`setLevel`/`levelCount`).
+    `src/levels/level1.js` deleted.
+  - World/cube/camera/renderer now read `getLevel()` at call time instead of baking an
+    imported `LEVEL` at module load. `world.js` gains `initWorld()` and `cube.js` gains
+    `initCube()` — re-callable builders that rebuild the **same** exported container
+    identities in place (so `main.js`'s held references survive a level switch); `goalH`
+    became a live binding. Both still self-initialize at import (tests rely on it).
+  - `main.js` gains `loadLevel(index, { play })` — the single path that rebuilds
+    world + cube + camera + render snapshots from a level. Bootstrap, `restart`, and
+    `onStart` all route through it; `restart` is now `loadLevel(current, {play:true})`.
+  - **"Next level" win flow:** the win-screen button reads "NEXT LEVEL →" when a next
+    level exists and advances to it (looping back to the first after the last), else
+    "PLAY AGAIN". With only level 1 present the label stays "PLAY AGAIN" and replays —
+    **byte-for-byte today's behavior**; the next-level machinery is dormant until
+    Phase 2 adds more levels. (2026-06-18)
+
 ### Fixed
 - **Prism visibility on the 1-wide corridor** — the floating prism gems (drawn at
   cube-body height) overlapped the cube silhouette and read ambiguously on level 1.
@@ -74,6 +95,13 @@ Conventions used here:
   `upload-pages-artifact` v3→v5, `deploy-pages` v4→v5. (2026-06-10)
 
 ### Verified
+- Level system Phase 1: 21/21 tests green (world sim unchanged), `npm run build` clean
+  (19 modules; identical bundle hash with/without the dev-only verification hook, so it
+  never ships). Full headless playthrough of level 1 to a win driven by stepping the sim
+  directly (the preview suspends `requestAnimationFrame`): start → faller bridge → prism 1
+  → board the mover → ride to [5,2] → ±1 climb → prism 2 → goal, ending WON with 2/2
+  prisms, zero console errors. Win → "PLAY AGAIN" reloads a fresh, playable level 1.
+  (2026-06-18)
 - Fixed-timestep refactor: 21/21 tests green, `npm run build` clean (17 modules), and
   a full play session in the dev preview (roll, hold-to-roll, edge commit, mover
   riding, both prisms collected) with zero console errors. (2026-06-11)
@@ -94,7 +122,8 @@ Conventions used here:
 - Known visual issue (reported 2026-06-11, fix planned): floating prisms can overlap
   the cube silhouette in the isometric projection on this level, which reads as
   ambiguous/occluding. Needs a readability fix in the prism decal rendering.
-- **Next planned task:** static/dynamic render split (cache the static floor).
+- **Next planned task:** level system Phase 2 — author 2–3 new original teaching levels
+  as JSON and register them (the loader + win flow are in place from Phase 1).
 
 ---
 
