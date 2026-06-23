@@ -31,6 +31,7 @@ export function showWin(timeMs, collected, total) {
 
 export function hideStart() { startScreen.classList.add('hidden'); }
 export function hideWin() { winScreen.classList.add('hidden'); }
+export function setWinButtonLabel(text) { $('againBtn').textContent = text; }
 export function setPauseVisible(on) { pauseScreen.classList.toggle('hidden', !on); }
 export function hidePause() { pauseScreen.classList.add('hidden'); }
 

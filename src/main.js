@@ -2,8 +2,8 @@
 import { ctx, W, H, resize } from './render/canvas.js';
 import { computeView, depthOf } from './render/camera.js';
 import { pushBox, fillPoly, drawPrism, drawPrismMark, drawGoal, trailQuad, sceneBlocks } from './render/renderer.js';
-import { tick as worldTick, resetWorld, goalH, movers, moverVisual } from './game/world.js';
-import { LEVEL } from './levels/level1.js';
+import { tick as worldTick, initWorld, goalH, movers, moverVisual } from './game/world.js';
+import { getLevel, setLevel, levelCount } from './levels/registry.js';
 import { initInput, clearInput } from './game/input.js';
 import { initTouch } from './touch.js';
 import { createStepper } from './engine/loop.js';
@@ -69,21 +69,33 @@ function togglePause() {
   if (!paused) window.focus();
 }
 
-function restart() {
-  ui.hideWin(); ui.hideStart();
-  resetWorld();
-  cube.resetCube();
+// ===== LEVEL ORCHESTRATION =====
+// The single path that (re)builds world + cube + camera + render snapshots from a
+// level. play:false leaves the START screen up (first boot); play:true drops
+// straight into IDLE (start / restart / next level).
+let currentLevelIndex = 0;
+
+function loadLevel(index, { play = false } = {}) {
+  currentLevelIndex = index;
+  setLevel(index);
+  initWorld();        // rebuild static/faller/mover state + goalH
+  cube.initCube();    // rebuild cube + prisms from the new level (reads world heights)
+  computeView();      // reframe the camera for the new layout
   clearInput();
-  paused = false; ui.hidePause();
+  paused = false; ui.hidePause(); ui.hideWin();
+  ui.setWinButtonLabel(index + 1 < levelCount() ? 'NEXT LEVEL →' : 'PLAY AGAIN');
+  if (play) { ui.hideStart(); cube.startGame(); window.focus(); }
   stepper.reset(); resyncSnapshots();
   const s = cube.stats(); ui.updateHud(s.collected, s.total, s.timeMs);
-  window.focus();
 }
 
-function onStart() {
-  ui.hideStart(); clearInput(); paused = false; window.focus();
-  cube.startGame();
-  stepper.reset(); resyncSnapshots();
+function restart() { loadLevel(currentLevelIndex, { play: true }); }
+function onStart() { loadLevel(currentLevelIndex, { play: true }); }
+
+// Win-screen button: advance to the next level, or loop back to the first.
+function onAgain() {
+  const next = currentLevelIndex + 1;
+  loadLevel(next < levelCount() ? next : 0, { play: true });
 }
 
 function onResize() { resize(); computeView(); }
@@ -107,7 +119,8 @@ function frame(now) {
     for (const blk of sceneBlocks(animClock, moverPos)) pushBox(list, blk.c, blk.hex, '#cdd6e3', blk.a);
     pushBox(list, corners, 0xd6249f, '#7a0e5e', cube.cubeAlpha);
     for (const t of cube.trail) list.push({ dep: depthOf([t.x, t.y, t.h + 0.012]) + 0.05, decal: 'trail', t });
-    list.push({ dep: depthOf([LEVEL.goal[0], LEVEL.goal[1], goalH + 0.02]) + 0.04, decal: 'goal' });
+    const goal = getLevel().goal;
+    list.push({ dep: depthOf([goal[0], goal[1], goalH + 0.02]) + 0.04, decal: 'goal' });
     for (const p of cube.prisms) {
       if (p.taken && p.pop >= 1) continue;
       list.push({ dep: depthOf([p.x, p.y, p.h + 0.02]) + 0.02, decal: 'prismMark', p }); // floor-level marker
@@ -130,13 +143,11 @@ function frame(now) {
 }
 
 // ===== WIRE-UP =====
-ui.initUI({ onStart, onAgain: restart, onResume: () => { if (paused) togglePause(); } });
+ui.initUI({ onStart, onAgain, onResume: () => { if (paused) togglePause(); } });
 initInput({ onTap: cube.onTap, onRestart: restart, onTune: ui.toggleTune, onPause: togglePause });
 initTouch({ onPause: togglePause, onRestart: restart, onTune: ui.toggleTune });
 
-const s0 = cube.stats(); ui.updateHud(s0.collected, s0.total, s0.timeMs);
-
-onResize();
-resyncSnapshots();
+resize();                       // size the canvas before computeView() reads W/H
+loadLevel(0, { play: false });  // show the start screen on level 1 (camera/HUD/snapshots set)
 window.addEventListener('resize', onResize);
 requestAnimationFrame(frame);

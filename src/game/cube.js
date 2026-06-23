@@ -1,7 +1,7 @@
 // ===== CUBE STATE + ROLL MACHINERY =====
 import { rotAxis, rotAboutEdge } from '../engine/math.js';
 import { ROLL_SPEED, EDGE_FRAC, settings } from '../config.js';
-import { LEVEL } from '../levels/level1.js';
+import { getLevel } from '../levels/registry.js';
 import { DIRS } from './dirs.js';
 import {
   heightAt, isSafe, moverAt, moverVisual, armFaller, fallerMap, staticMap,
@@ -12,9 +12,9 @@ import { updateHud, showWin } from '../ui.js';
 export const ST = { START: 0, IDLE: 1, ROLLING: 2, EDGING: 3, FALLING: 4, WON: 5 };
 
 export let state = ST.START;
-let pos = { x: LEVEL.start[0], y: LEVEL.start[1] };
-let lastSafe = { x: pos.x, y: pos.y, h: heightAt(pos.x, pos.y) };
-let C = [pos.x, pos.y, heightAt(pos.x, pos.y) + 0.5];
+let pos = { x: 0, y: 0 };
+let lastSafe = { x: 0, y: 0, h: 0 };
+let C = [0, 0, 0.5];
 let R = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 export let cubeAlpha = 1;
 let collected = 0, timeMs = 0, timing = false;
@@ -79,7 +79,8 @@ function finalizeRoll() {
       else { ridingMover = null; if (fallerMap.has(pos.x + ',' + pos.y)) armFaller(pos.x, pos.y); }
     }
     dropTrail(pos.x, pos.y); checkPrism();
-    if (pos.x === LEVEL.goal[0] && pos.y === LEVEL.goal[1]) { win(); roll = null; return; }
+    const goal = getLevel().goal;
+    if (pos.x === goal[0] && pos.y === goal[1]) { win(); roll = null; return; }
     state = ST.IDLE;
   } else if (k === 'edge') { edgeDir = dir; edgePivot = roll.pivot; state = ST.EDGING; }
   else if (k === 'recover') { state = ST.IDLE; }
@@ -106,7 +107,8 @@ function idleSync() {
     pos = { x: ridingMover.cur[0], y: ridingMover.cur[1] };
     C = [vp[0], vp[1], ridingMover.h + 0.5];
     checkPrism();
-    if (pos.x === LEVEL.goal[0] && pos.y === LEVEL.goal[1]) win();
+    const goal = getLevel().goal;
+    if (pos.x === goal[0] && pos.y === goal[1]) win();
   } else if (heightAt(pos.x, pos.y) === null) {
     startFall();
   } else {
@@ -115,7 +117,8 @@ function idleSync() {
 }
 
 // ===== PRISMS / TRAIL =====
-export const prisms = LEVEL.prisms.map(([x, y]) => ({ x, y, h: (heightAt(x, y) || 0), taken: false, pop: 0 }));
+// Stable array identities — rebuilt in place by initCube() (main holds references).
+export const prisms = [];
 export const trail = [];
 function dropTrail(x, y) { trail.push({ x, y, h: (heightAt(x, y) || 0), life: 1.4 }); }
 function checkPrism() {
@@ -167,16 +170,24 @@ export function onTap(code) {
 
 export function startGame() { state = ST.IDLE; }
 
-export function resetCube() {
-  prisms.forEach((p) => { p.taken = false; p.pop = 0; });
+// Build cube + prism state from the active level, back to the START screen. Called
+// once at import and again by loadLevel(); loadLevel() flips to IDLE when playing.
+// Requires world to be initialized first (heightAt reads world state).
+export function initCube() {
+  const L = getLevel();
+  prisms.length = 0;
+  for (const [x, y] of L.prisms) prisms.push({ x, y, h: (heightAt(x, y) || 0), taken: false, pop: 0 });
+  trail.length = 0;
   collected = 0; timeMs = 0; timing = false; ridingMover = null;
-  pos = { x: LEVEL.start[0], y: LEVEL.start[1] };
+  pos = { x: L.start[0], y: L.start[1] };
   lastSafe = { x: pos.x, y: pos.y, h: heightAt(pos.x, pos.y) };
   C = [pos.x, pos.y, heightAt(pos.x, pos.y) + 0.5];
   R = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; cubeAlpha = 1;
-  trail.length = 0; roll = null; edgeDir = null; edgePivot = null;
-  state = ST.IDLE;
+  roll = null; edgeDir = null; edgePivot = null;
+  state = ST.START;
 }
+
+initCube(); // initialize to the active level at import (world already initialized)
 
 // Read-only snapshots for the HUD/win flow used by the restart orchestration.
 export const stats = () => ({ collected, total: prisms.length, timeMs });
