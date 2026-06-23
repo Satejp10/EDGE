@@ -57,13 +57,18 @@ export function drawPrismMark(p) {
   ctx.restore();
 }
 
-export function drawPrism(p, now) {
-  const bob = Math.sin(now * 0.003 + p.x) * 0.06; const s = p.taken ? Math.max(0, 1 - p.pop) : 1; if (s <= 0) return;
+// fade (0..1): proximity fade applied by the caller — 0 when the cube is on this
+// prism's tile, 1 when it's clear — so the gem dissolves instead of overlapping the cube.
+export function drawPrism(p, now, fade = 1) {
+  const bob = Math.sin(now * 0.003 + p.x) * 0.06;
+  const s = p.taken ? Math.max(0, 1 - p.pop) : 1;  // pickup-pop scale (drives size)
+  const a = s * fade;                              // overall opacity (pop * proximity)
+  if (a <= 0) return;
   const ctr = project([p.x, p.y, p.h + 0.55 + bob]); const r = 0.24 * S * s;
   const top = [ctr[0], ctr[1] - r], bot = [ctr[0], ctr[1] + r], lf = [ctr[0] - r * 0.72, ctr[1]], rt = [ctr[0] + r * 0.72, ctr[1]];
-  // Lower opacity than before (0.96 -> 0.8) so the cube reads through an overlapping gem.
-  fillPoly([top, rt, bot, lf], '#15b9c9', '#0a7f8c', 0.8);
-  fillPoly([top, rt, [ctr[0], ctr[1]], lf], '#7fe6f0', null, 0.78);
+  // Lower base opacity (0.96 -> 0.8) so the cube reads through; * a fades it on approach.
+  fillPoly([top, rt, bot, lf], '#15b9c9', '#0a7f8c', 0.8 * a);
+  fillPoly([top, rt, [ctr[0], ctr[1]], lf], '#7fe6f0', null, 0.78 * a);
 }
 
 export function drawGoal(now) {
