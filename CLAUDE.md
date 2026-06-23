@@ -60,13 +60,12 @@ callbacks, they never import game logic.
    (`engine/loop.js` stepper, FIXED_DT=1/120, lerped cube/mover rendering, 21 tests).
 3. ~~Polish: prism-visibility readability fix + faller reform speed-up~~ — DONE, merged &
    live 2026-06-18 (`drawPrismMark` floor disc + gem alpha 0.8; `FALL_RESPAWN` 2.0→1.2s).
-4. **JSON level loader + real levels** ← IN PROGRESS. ~~Phase 1 = data-driven,
-   re-initializable level loading (`levels/*.json` + `registry.js`, `loadLevel()`,
-   world/cube/camera/renderer read the active level, next-level win flow)~~ — DONE
-   2026-06-18, behavior-preserving for level 1 (21 tests green, headless playthrough to a
-   win verified; not yet committed/merged). **Phase 2 = author 2–3 new original teaching
-   levels** ← NEXT. Decisions: build-time JSON import (no fetch), linear auto-advance,
-   original teaching levels first (faithful EDGE stage recreations deferred).
+4. ~~JSON level loader + real levels~~ — DONE. Phase 1 = data-driven, re-initializable
+   loading (`levels/*.json` + `registry.js`, `loadLevel()`, world/cube/camera/renderer read
+   the active level, next-level win flow), behavior-preserving for level 1 — merged & live
+   (PR #5, 2026-06-24). Phase 2 = three new original teaching levels (Corner Climb / Ferry
+   / Crumble Run, `level2-4.json`), linear auto-advance 1→2→3→4→1 — done 2026-06-24, each
+   verified solvable headlessly. Faithful EDGE stage recreations remain deferred.
 5. Static/dynamic render split (cache the static floor) — deferred; premature for one
    small level.
 6. Robustness: `unhandledrejection` handler, auto-pause on `visibilitychange`

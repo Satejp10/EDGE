@@ -115,8 +115,9 @@ project context).
 3. ~~**Fixed-timestep loop + render interpolation**~~ — DONE: 120 Hz fixed sim +
    alpha-lerped rendering (`engine/loop.js`), first test suite via `npm test` (node:test).
 4. **Static/dynamic render split** — cache the static floor; only redraw moving geometry.
-5. **JSON level loader + real levels** — Phase 1 DONE (JSON data + `registry.js` loader,
-   `loadLevel()`, next-level win flow); Phase 2 (author 2–3 new levels) next.
+5. ~~**JSON level loader + real levels**~~ — DONE: JSON data + `registry.js` loader,
+   `loadLevel()`, next-level win flow (Phase 1); plus 3 new original levels — Corner Climb,
+   Ferry, Crumble Run — auto-advancing 1→2→3→4→1 (Phase 2).
 6. **Polish & deploy** — object pooling, profiling, error telemetry; host on a free static host.
 
 ## Project layout
