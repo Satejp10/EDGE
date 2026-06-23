@@ -16,6 +16,17 @@ Conventions used here:
 ## [Unreleased]
 
 ### Added
+- **Three new original levels — level system Phase 2** (roadmap item 4). Authored as
+  JSON and registered in `registry.js` (`LEVELS` now has 4 entries; linear auto-advance
+  chains 1→2→3→4 and loops back to 1):
+  - **Corner Climb** (`level2.json`) — teaches turning + a ±1 climb/descend chain: roll
+    east, turn south up a 2-high step, grab the prism on top, descend to the goal.
+  - **Ferry** (`level3.json`) — teaches chaining two moving platforms with a safe
+    mid-platform checkpoint between them (an escalation of level 1's single mover).
+  - **Crumble Run** (`level4.json`) — teaches faller urgency under turns: an S-shaped
+    bridge of collapsing tiles with safe corners (≤2 fallers per run, so it's fair).
+  - Each carries 2 prisms. No engine changes — pure level data on top of the Phase 1
+    loader. (2026-06-24)
 - **Data-driven level system — Phase 1** (roadmap item 4, behavior-preserving for level 1):
   - `src/levels/level1.json` — the level promoted from a JS literal to JSON data
     (values unchanged). `src/levels/registry.js` — the level catalog (`LEVELS`, built-time
@@ -33,8 +44,8 @@ Conventions used here:
   - **"Next level" win flow:** the win-screen button reads "NEXT LEVEL →" when a next
     level exists and advances to it (looping back to the first after the last), else
     "PLAY AGAIN". With only level 1 present the label stays "PLAY AGAIN" and replays —
-    **byte-for-byte today's behavior**; the next-level machinery is dormant until
-    Phase 2 adds more levels. (2026-06-18)
+    **byte-for-byte today's behavior**; the next-level machinery stays dormant until
+    Phase 2 adds more levels. (2026-06-24, PR #5)
 
 ### Fixed
 - **Prism visibility on the 1-wide corridor** — the floating prism gems (drawn at
@@ -95,6 +106,12 @@ Conventions used here:
   `upload-pages-artifact` v3→v5, `deploy-pages` v4→v5. (2026-06-10)
 
 ### Verified
+- Level system Phase 2: 21/21 tests green, `npm run build` clean (identical bundle hash
+  with/without the dev-only driver). Each new level driven to a win headlessly by stepping
+  the sim directly — Corner Climb (climb/descend, 2/2 prisms), Ferry (both ferries timed
+  and ridden, 2/2), Crumble Run (faller S-run, 2/2). Win-flow progression confirmed:
+  labels are "NEXT LEVEL →" on 1–3 and "PLAY AGAIN" on 4, and the chain advances
+  1→2→3→4→1 with no console errors. (2026-06-24)
 - Level system Phase 1: 21/21 tests green (world sim unchanged), `npm run build` clean
   (19 modules; identical bundle hash with/without the dev-only verification hook, so it
   never ships). Full headless playthrough of level 1 to a win driven by stepping the sim
@@ -122,8 +139,9 @@ Conventions used here:
 - Known visual issue (reported 2026-06-11, fix planned): floating prisms can overlap
   the cube silhouette in the isometric projection on this level, which reads as
   ambiguous/occluding. Needs a readability fix in the prism decal rendering.
-- **Next planned task:** level system Phase 2 — author 2–3 new original teaching levels
-  as JSON and register them (the loader + win flow are in place from Phase 1).
+- **Next planned task:** prism-readability render fix (the floating gem at `h+0.55` sits
+  inside the cube's `h+0.05..0.95` body, so it overlaps the cube when rolling onto a prism
+  tile — reported confusing). Then the deferred static/dynamic render split.
 
 ---
 

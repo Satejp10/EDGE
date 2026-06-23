@@ -15,8 +15,11 @@
 // Consumers read the active level via getLevel() at call time (never baked at import);
 // loadLevel() in main.js calls setLevel() then re-initializes world/cube/camera.
 import level1 from './level1.json' with { type: 'json' };
+import level2 from './level2.json' with { type: 'json' };
+import level3 from './level3.json' with { type: 'json' };
+import level4 from './level4.json' with { type: 'json' };
 
-export const LEVELS = [level1];
+export const LEVELS = [level1, level2, level3, level4];
 
 let active = LEVELS[0];
 
