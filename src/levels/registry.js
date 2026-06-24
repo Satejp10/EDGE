@@ -26,3 +26,8 @@ let active = LEVELS[0];
 export const getLevel = () => active;
 export const levelCount = () => LEVELS.length;
 export function setLevel(i) { active = LEVELS[i]; return active; }
+
+// Test/diagnostic helper: activate an arbitrary level object without registering it in
+// the catalog. Used by unit tests to build a controlled world fixture (e.g. a single
+// mover on otherwise empty ground), independent of any shipped level's contents.
+export function setLevelData(obj) { active = obj; return active; }
