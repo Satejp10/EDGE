@@ -25,6 +25,15 @@ Conventions used here:
   are still introduced in level 3 (Ferry). (2026-06-24)
 
 ### Added
+- **Robustness: auto-pause on tab-hidden + unhandled-rejection overlay** (roadmap item 6).
+  - The sim now **auto-pauses when the tab/window is hidden** (`visibilitychange` →
+    `togglePause` in `main.js`), raising the PAUSE overlay so the player returns to a
+    deliberately stopped frame and resumes by choice. (rAF already freezes the sim while
+    hidden and the fixed-timestep stepper clamps the catch-up to 50 ms, so this is the
+    UX layer on top — there was no actual timer desync to fix.)
+  - Added a top-level **`unhandledrejection`** handler in `index.html`, next to the
+    existing `error` handler, so unhandled promise rejections surface in the fatal
+    overlay instead of dying silently in the console. (2026-06-24)
 - **Three new original levels — level system Phase 2** (roadmap item 4). Authored as
   JSON and registered in `registry.js` (`LEVELS` now has 4 entries; linear auto-advance
   chains 1→2→3→4 and loops back to 1):
