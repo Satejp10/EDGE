@@ -18,8 +18,9 @@ import level1 from './level1.json' with { type: 'json' };
 import level2 from './level2.json' with { type: 'json' };
 import level3 from './level3.json' with { type: 'json' };
 import level4 from './level4.json' with { type: 'json' };
+import level5 from './level5.json' with { type: 'json' };
 
-export const LEVELS = [level1, level2, level3, level4];
+export const LEVELS = [level1, level2, level3, level4, level5];
 
 let active = LEVELS[0];
 
