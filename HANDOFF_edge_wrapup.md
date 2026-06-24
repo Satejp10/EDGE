@@ -157,3 +157,32 @@ Section 3's "one known real bug":**
 
 Everything else in this handoff stands. Next up per Section 4: the capstone 5th level
 (plan-first, sign-off before building).
+
+---
+
+## Project concluded (2026-06-24)
+
+The wrap-up landed. EDGE is a stable **5-level showcase** — Level 1 simplified, the
+robustness polish, and the capstone **Topple** (climb + faller + ferry) clearing to the
+**"TOPPLE — an EDGE homage"** card, auto-advancing 1→2→3→4→5→1. Tests 21/21, build clean,
+deployed live: https://satejp10.github.io/EDGE/ . The cut list in Section 2 stays cut.
+
+### Branch cleanup log
+
+After the final merges, all feature branches were merged into `main` and deleted from
+both local and `origin` (verified merged via `git branch --merged`). The permanent
+per-change record lives in the merged PRs below; this table is the one-glance index.
+
+| PR | Branch (deleted) | Tip | Summary |
+|----|------------------|-----|---------|
+| #1  | mobile-touch-controls   | 4939904 | Mobile touch controls (D-pad + system buttons) |
+| #2  | fixed-timestep          | 3dc6456 | Fixed-timestep loop, render interpolation, first tests |
+| #3  | prism-visibility        | 461c658 | Fix prism visibility on 1-wide corridor |
+| #4  | faller-respawn          | a646965 | Speed up faller tile reform (2.0s → 1.2s) |
+| #5  | level-system-phase1     | 936409c | Data-driven level system (Phase 1) |
+| #6  | levels-phase2           | 1c9ffe1 | Three new original levels (Phase 2) |
+| #7  | prism-readability-fade  | 888b53c | Fade prism gem on cube approach (readability) |
+| #8  | docs-progress-refresh   | 89288fd | Refresh PROGRESS_for_claude.md |
+| #9  | simplify-level1         | 07bcdb7 | Simplify level 1: remove the moving platform |
+| #10 | robustness-autopause    | b6fc471 | Auto-pause on tab-hidden + unhandled-rejection overlay |
+| #11 | capstone-level5         | 1e449a7 | Capstone "Topple" + "an EDGE homage" card |
