@@ -157,4 +157,14 @@ initTouch({ onPause: togglePause, onRestart: restart, onTune: ui.toggleTune });
 resize();                       // size the canvas before computeView() reads W/H
 loadLevel(0, { play: false });  // show the start screen on level 1 (camera/HUD/snapshots set)
 window.addEventListener('resize', onResize);
+
+// Auto-pause when the tab/window is hidden. rAF (and thus the sim) already freezes
+// while hidden; pausing on top of that puts the PAUSE overlay up so the player returns
+// to a deliberately stopped frame and resumes by choice, rather than a silent jump-in.
+// togglePause() guards START/WON and drives the overlay; the !paused check avoids
+// un-pausing an already-paused game.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && !paused) togglePause();
+});
+
 requestAnimationFrame(frame);

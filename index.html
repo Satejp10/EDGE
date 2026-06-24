@@ -146,6 +146,10 @@
   window.addEventListener('error', function(e){
     var m=e.message||'unknown error'; if(e.filename) m+='\n'+e.filename+(e.lineno?(':'+e.lineno):''); window.showFatal(m);
   });
+  // Surface unhandled promise rejections the same way instead of letting them die in the console.
+  window.addEventListener('unhandledrejection', function(e){
+    var r=e.reason; window.showFatal('unhandled: '+(r&&r.message?r.message:r));
+  });
 </script>
 
 <script type="module" src="/src/main.js"></script>
