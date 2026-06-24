@@ -32,6 +32,13 @@ export function showWin(timeMs, collected, total) {
 export function hideStart() { startScreen.classList.add('hidden'); }
 export function hideWin() { winScreen.classList.add('hidden'); }
 export function setWinButtonLabel(text) { $('againBtn').textContent = text; }
+
+// Final level → swap the win card to the "TOPPLE — an EDGE homage" closer; any other
+// level keeps the plain per-level "CLEARED" card. Set ahead of the win (in loadLevel).
+export function setWinFinal(isFinal) {
+  $('winTitle').textContent = isFinal ? 'TOPPLE' : 'CLEARED';
+  $('winNote').classList.toggle('hidden', !isFinal);
+}
 export function setPauseVisible(on) { pauseScreen.classList.toggle('hidden', !on); }
 export function hidePause() { pauseScreen.classList.add('hidden'); }
 

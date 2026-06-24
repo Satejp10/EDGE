@@ -25,6 +25,14 @@ Conventions used here:
   are still introduced in level 3 (Ferry). (2026-06-24)
 
 ### Added
+- **Capstone level 5 — "Topple" + a completion card** (concludes the 5-level showcase).
+  A finale that chains all three taught mechanics in three acts: a 0→1→2 climb staircase,
+  a 3-tile collapsing bridge with a turn, then a timed mover ferry across a real gap to a
+  raised goal (`level5.json`; registered in `registry.js`, so auto-advance is now
+  **1→2→3→4→5→1**). Two prisms, verified solvable end-to-end. Clearing the **last** level
+  now shows a tribute card — **"TOPPLE — an EDGE homage"** — instead of the plain
+  "CLEARED" (`setWinFinal()` in `ui.js`, set per-level in `main.js`; `#winTitle`/`#winNote`
+  in `index.html`). (2026-06-24)
 - **Robustness: auto-pause on tab-hidden + unhandled-rejection overlay** (roadmap item 6).
   - The sim now **auto-pauses when the tab/window is hidden** (`visibilitychange` →
     `togglePause` in `main.js`), raising the PAUSE overlay so the player returns to a

@@ -83,7 +83,9 @@ function loadLevel(index, { play = false } = {}) {
   computeView();      // reframe the camera for the new layout
   clearInput();
   paused = false; ui.hidePause(); ui.hideWin();
-  ui.setWinButtonLabel(index + 1 < levelCount() ? 'NEXT LEVEL →' : 'PLAY AGAIN');
+  const isLast = index + 1 >= levelCount();
+  ui.setWinButtonLabel(isLast ? 'PLAY AGAIN' : 'NEXT LEVEL →');
+  ui.setWinFinal(isLast);   // last level clears to the "TOPPLE — an EDGE homage" card
   if (play) { ui.hideStart(); cube.startGame(); window.focus(); }
   stepper.reset(); resyncSnapshots();
   const s = cube.stats(); ui.updateHud(s.collected, s.total, s.timeMs);
