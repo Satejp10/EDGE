@@ -15,6 +15,15 @@ Conventions used here:
 
 ## [Unreleased]
 
+### Changed
+- **Level 1 simplified: removed the moving platform** (player feedback — it
+  over-complicated the opening level). The mover that ferried the cube from `(4,1)`
+  to `(6,2)` is gone; two static tiles `(5,1)`/`(5,2)` now bridge that gap, so level 1
+  teaches roll → collapsing tiles → a single ±1 climb → goal, with no platform timing.
+  Both prisms unchanged; verified solvable. Start-screen help copy updated ("ride the
+  moving block" → "climb the step") in `index.html` and `touch.js`. Moving platforms
+  are still introduced in level 3 (Ferry). (2026-06-24)
+
 ### Added
 - **Three new original levels — level system Phase 2** (roadmap item 4). Authored as
   JSON and registered in `registry.js` (`LEVELS` now has 4 entries; linear auto-advance

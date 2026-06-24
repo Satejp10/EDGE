@@ -35,7 +35,7 @@ export function initTouch({ onPause, onRestart, onTune }) {
   document.body.classList.add('touch-on');
   $('touch').classList.remove('hidden');
   $('modeTag').textContent = 'TOUCH · HOLD AN ARROW TO KEEP ROLLING';
-  $('startHelp').innerHTML = 'roll · ride the moving block · don’t linger on the amber tiles · reach the goal<br>' +
+  $('startHelp').innerHTML = 'roll · climb the step · don’t linger on the amber tiles · reach the goal<br>' +
     'hold a D-pad arrow to keep rolling · at a ledge, tap the same arrow again to drop off';
 
   for (const el of document.querySelectorAll('#touch [data-dir]')) {

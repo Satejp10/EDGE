@@ -3,11 +3,22 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  tick, resetWorld, movers, fallerList, fallerMap, heightAt, isSafe, armFaller, moverVisual,
+  tick, resetWorld, initWorld, movers, fallerList, fallerMap, heightAt, isSafe, armFaller, moverVisual,
 } from '../src/game/world.js';
+import { setLevel, setLevelData } from '../src/levels/registry.js';
 import { FIXED_DT, BEAT, FALL_DELAY, FALL_ANIM, FALL_RESPAWN } from '../src/config.js';
 
-beforeEach(() => resetWorld());
+// A controlled single-mover fixture so the mover-mechanic tests don't depend on any
+// shipped level (level 1 has no mover; Ferry has two). (5,1)/(5,2) are NOT static
+// here, so heightAt at those cells reflects the mover alone.
+const MOVER_LEVEL = {
+  name: 'test-mover', start: [0, 0], goal: [0, 0], cells: [[0, 0, 0]],
+  fallers: [], movers: [{ path: [[5, 1], [5, 2]], h: 0, mode: 'pingpong' }], prisms: [],
+};
+
+// Rebuild the default level-1 world before each test, so a mover test that swaps in the
+// fixture above (via setLevelData + initWorld) can't leak into the next test.
+beforeEach(() => { setLevel(0); initWorld(); });
 
 // Advance the world in fixed steps (one extra step absorbs float accumulation).
 const stepFor = (seconds) => {
@@ -24,6 +35,7 @@ test('heightAt: static cells, empty space', () => {
 });
 
 test('mover ping-pongs along its path, one cell per beat', () => {
+  setLevelData(MOVER_LEVEL); initWorld();
   const m = movers[0];
   assert.deepEqual(m.cur, [5, 1]);
   assert.equal(heightAt(5, 1), m.h);
@@ -35,6 +47,7 @@ test('mover ping-pongs along its path, one cell per beat', () => {
 });
 
 test('moverVisual eases between prev and cur within a beat', () => {
+  setLevelData(MOVER_LEVEL); initWorld();
   const m = movers[0];
   stepFor(BEAT);            // beat fires: prev [5,1] -> cur [5,2], phase ~0
   stepFor(BEAT / 2 - FIXED_DT * 2); // park mid-beat (stay clear of the next beat)
